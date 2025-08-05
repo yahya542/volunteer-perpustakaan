@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Sejarah Peminjaman{% endblock %}
+{% block content %}
+    <h2>Sejarah Peminjaman saya</h2>
+    <p>{{ daftar_peminjaman|length }} sejarah peminjaman eksemplar</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Kode Eksemplar</th>
+                <th>Judul</th>
+                <th>Tanggal Pinjam</th>
+                <th>Tanggal Kembali</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pinjam in daftar_peminjaman %}
+            <tr>
+                <td>{{ pinjam.kode_eksemplar }}</td>
+                <td>{{ pinjam.judul }}</td>
+                <td>{{ pinjam.tanggal_pinjam }}</td>
+                <td>{{ pinjam.tanggal_kembali }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">Tidak ada sejarah peminjaman.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
