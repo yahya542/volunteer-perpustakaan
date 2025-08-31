@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from .models import register
+from api.models import Register, Login
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = register
+        model = Register
         fields = [
             'id',
             'username',
@@ -14,3 +14,9 @@ class RegisterSerializer(serializers.ModelSerializer):
             'address',
             'date_joined',
         ]
+
+
+class LoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Login
+        fields = ['id', 'nik', 'password']

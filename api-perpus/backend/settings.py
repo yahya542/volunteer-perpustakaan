@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'db_perpus',
+        'USER': 'django_user',
+        'PASSWORD': 'django_password',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
@@ -115,15 +119,28 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.x/howto/static-files/
 
-STATIC_URL = '/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.x/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
+# Tambahan optional, kalau mau menyimpan file statis di luar app
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / "static",
 ]
+
+# Folder untuk file statis yang sudah dikumpulkan (misalnya saat deploy)
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sajakcodingan@gmail.com'
+EMAIL_HOST_PASSWORD = 'hmkk cwdy wzgj seyv'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
