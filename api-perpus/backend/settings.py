@@ -147,6 +147,8 @@ STATICFILES_DIRS = [
 # Folder untuk file statis yang sudah dikumpulkan (misalnya saat deploy)
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+# EMAIL_FILE_PATH = 'emails'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587

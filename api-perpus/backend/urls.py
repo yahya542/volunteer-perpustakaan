@@ -1,6 +1,6 @@
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from authentication.views import register, login
+from authentication.views import Register, Login
 
 
 urlpatterns = [
