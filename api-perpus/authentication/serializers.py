@@ -19,6 +19,15 @@ class RegisterSerializer(serializers.ModelSerializer):
             'address',
             'date_joined',
         ]
+        read_only_fields = ['date_joined']
+
+
+class VerifyTokenSerializer(serializers.Serializer):
+    """
+    Serializer for token verification.
+    """
+    email = serializers.EmailField()
+    token = serializers.CharField(max_length=100)
 
 
 class LoginSerializer(serializers.ModelSerializer):

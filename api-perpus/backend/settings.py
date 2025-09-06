@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'api',  # Your API app
     'authentication',  # Renamed to avoid conflict with django.contrib.auth
+    'user',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',

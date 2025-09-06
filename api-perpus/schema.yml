@@ -36,6 +36,7 @@ paths:
           - br
           - bs
           - ca
+          - ckb
           - cs
           - cy
           - da
@@ -88,6 +89,7 @@ paths:
           - ml
           - mn
           - mr
+          - ms
           - my
           - nb
           - ne
@@ -148,72 +150,205 @@ paths:
                 additionalProperties: {}
           description: ''
   /auth/login/:
-    get:
-      operationId: auth_login_retrieve
-      description: |-
-        Handle user login.
-
-        GET: List all login records.
-        POST: Authenticate user with NIK and password, check for admin role.
-      tags:
-      - auth
-      security:
-      - cookieAuth: []
-      - basicAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
     post:
       operationId: auth_login_create
-      description: |-
-        Handle user login.
-
-        GET: List all login records.
-        POST: Authenticate user with NIK and password, check for admin role.
+      description: Authenticate user with NIK and password, check for admin role.
+      summary: User Login
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
       security:
       - cookieAuth: []
       - basicAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  nik:
+                    type: string
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+          description: ''
   /auth/register/:
-    get:
-      operationId: auth_register_retrieve
-      description: |-
-        Handle user registration.
-
-        GET: List all registered users.
-        POST: Register a new user with NIK validation and email confirmation.
-      tags:
-      - auth
-      security:
-      - cookieAuth: []
-      - basicAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
     post:
       operationId: auth_register_create
-      description: |-
-        Handle user registration.
-
-        GET: List all registered users.
-        POST: Register a new user with NIK validation and email confirmation.
+      description: Register a new user with NIK validation and email confirmation.
+      summary: User Registration
       tags:
       - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+          description: ''
+  /auth/verify/:
+    post:
+      operationId: auth_verify_create
+      description: Verify the token sent to email and activate the user account.
+      summary: Verify User Token
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyToken'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VerifyToken'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VerifyToken'
+        required: true
       security:
       - cookieAuth: []
       - basicAuth: []
       - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+          description: ''
 components:
+  schemas:
+    Login:
+      type: object
+      description: Serializer for user login.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nik:
+          type: string
+          maxLength: 100
+        password:
+          type: string
+          writeOnly: true
+          description: User password
+      required:
+      - id
+      - nik
+      - password
+    Register:
+      type: object
+      description: Serializer for user registration.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          maxLength: 100
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          description: User password
+        nik:
+          type: string
+          maxLength: 100
+        phone:
+          type: string
+          maxLength: 15
+        address:
+          type: string
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - address
+      - date_joined
+      - email
+      - id
+      - nik
+      - password
+      - phone
+      - username
+    VerifyToken:
+      type: object
+      description: Serializer for token verification.
+      properties:
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+          maxLength: 100
+      required:
+      - email
+      - token
   securitySchemes:
     basicAuth:
       type: http

@@ -7,6 +7,8 @@ class Register(models.Model):
     nik = models.CharField(max_length=100)
     phone = models.CharField(max_length=15)
     address = models.TextField()
+    verification_token = models.CharField(max_length=100, blank=True, null=True)
+    is_verified = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
