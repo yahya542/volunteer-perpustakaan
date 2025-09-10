@@ -79,7 +79,14 @@ class VerifyTokenView(APIView):
                 email=user.email,
                 nik=user.nik,
                 phone=user.phone,
-                address=user.address
+                address=user.address,
+                tempat_lahir=user.tempat_lahir,
+                tanggal_lahir=user.tanggal_lahir,
+                institusi=user.institusi,
+                keanggotaan=user.keanggotaan,
+                jenis_kelamin=user.jenis_kelamin,
+                foto_diri=user.foto_diri,
+                foto_ktp=user.foto_ktp
             )
             return Response({'message': 'Akun berhasil diverifikasi. Profile telah dibuat. Anda dapat login sekarang.', 'next_step': 'POST /auth/login/ dengan nik dan password'}, status=200)
         return Response({'error': 'Token tidak valid atau akun sudah diverifikasi'}, status=400)

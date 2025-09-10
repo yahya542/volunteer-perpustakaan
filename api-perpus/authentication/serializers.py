@@ -6,6 +6,9 @@ class RegisterSerializer(serializers.ModelSerializer):
     Serializer for user registration.
     """
     password = serializers.CharField(write_only=True, help_text="User password")
+    tanggal_lahir = serializers.DateField(required=False, help_text="Format: YYYY-MM-DD")
+    foto_diri = serializers.ImageField(required=False, help_text="Upload profile photo")
+    foto_ktp = serializers.ImageField(required=False, help_text="Upload ID card photo")
 
     class Meta:
         model = Register
@@ -17,6 +20,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             'nik',
             'phone',
             'address',
+            'tempat_lahir',
+            'tanggal_lahir',
+            'institusi',
+            'keanggotaan',
+            'jenis_kelamin',
+            'foto_diri',
+            'foto_ktp',
             'date_joined',
         ]
         read_only_fields = ['date_joined']
