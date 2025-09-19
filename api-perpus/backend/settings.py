@@ -26,7 +26,7 @@ SECRET_KEY = 'your-secret-key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -38,13 +38,42 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # Django REST framework
+    'rest_framework_simplejwt',  # JWT Authentication
     'drf_spectacular',
     'api',  # Your API app
     'authentication',  # Renamed to avoid conflict with django.contrib.auth
     'user',
 ]
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# JWT Configuration
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': False,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'user_id',  # Use user_id instead of id for JWT tokens
+    'USER_ID_CLAIM': 'user_id',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
 }
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Perpustakaan API',
@@ -88,11 +117,14 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'db_perpus',
-        'USER': 'django_user',
-        'PASSWORD': 'django_password',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': 'perpus_dev',
+        'USER': 'perpus',
+        'PASSWORD': 'perpus123',
+        'HOST': 'localhost',   # kalau server beda isi dengan IP/hostname
+        'PORT': '3306',        # port default MySQL
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -148,12 +180,24 @@ STATICFILES_DIRS = [
 # Folder untuk file statis yang sudah dikumpulkan (misalnya saat deploy)
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
-# EMAIL_FILE_PATH = 'emails'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'sajakcodingan@gmail.com'
-EMAIL_HOST_PASSWORD = 'hmkk cwdy wzgj seyv'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# Email Configuration Options:
+
+# OPTION 1: Console Backend (For Development/Testing - CURRENTLY ACTIVE)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# OPTION 2: SMTP Gmail (For Production - Uncomment to send real emails)
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_USE_SSL = False
+# EMAIL_HOST_USER = 'sajakcodingan@gmail.com'
+# EMAIL_HOST_PASSWORD = 'hmkk cwdy wzgj seyv'
+# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_TIMEOUT = 30
+
+# STATUS: Currently using Console Backend - emails appear in Django terminal
+# To send real emails: Comment out OPTION 1 and uncomment OPTION 2
+
+# Alternative: Use console backend for development
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
