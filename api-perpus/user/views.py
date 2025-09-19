@@ -75,51 +75,124 @@ class MemberViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+# Constant member types data
+MEMBER_TYPES_DATA = [
+    {
+        "member_type_id": 1,
+        "member_type_name": "Mahasiswa",
+        "loan_limit": 3,
+        "loan_periode": 7,
+        "enable_reserve": 1,
+        "reserve_limit": 2,
+        "member_periode": 365,
+        "reborrow_limit": 2,
+        "fine_each_day": 500,
+        "grace_periode": 3,
+        "input_date": "2025-09-17",
+        "last_update": "2025-09-17"
+    },
+    {
+        "member_type_id": 2,
+        "member_type_name": "Dosen",
+        "loan_limit": 5,
+        "loan_periode": 14,
+        "enable_reserve": 1,
+        "reserve_limit": 5,
+        "member_periode": 365,
+        "reborrow_limit": 3,
+        "fine_each_day": 1000,
+        "grace_periode": 7,
+        "input_date": "2025-09-17",
+        "last_update": "2025-09-17"
+    },
+    {
+        "member_type_id": 3,
+        "member_type_name": "Staff",
+        "loan_limit": 4,
+        "loan_periode": 10,
+        "enable_reserve": 1,
+        "reserve_limit": 3,
+        "member_periode": 365,
+        "reborrow_limit": 2,
+        "fine_each_day": 750,
+        "grace_periode": 5,
+        "input_date": "2025-09-17",
+        "last_update": "2025-09-17"
+    },
+    {
+        "member_type_id": 4,
+        "member_type_name": "Umum",
+        "loan_limit": 2,
+        "loan_periode": 7,
+        "enable_reserve": 0,
+        "reserve_limit": 1,
+        "member_periode": 180,
+        "reborrow_limit": 1,
+        "fine_each_day": 1000,
+        "grace_periode": 3,
+        "input_date": "2025-09-17",
+        "last_update": "2025-09-17"
+    }
+]
+
+
 @extend_schema_view(
     list=extend_schema(
         tags=['1. Tipe Anggota'],
         summary="Daftar semua tipe anggota",
-        description="Ambil daftar semua tipe/kategori anggota yang tersedia di sistem perpustakaan."
+        description="Ambil daftar semua tipe/kategori anggota yang tersedia di sistem perpustakaan. Data ini bersifat konstan dan tidak dapat diubah."
     ),
     retrieve=extend_schema(
         tags=['1. Tipe Anggota'],
         summary="Dapatkan detail tipe anggota",
-        description="Ambil informasi detail tentang tipe anggota tertentu berdasarkan ID."
-    ),
-    create=extend_schema(
-        tags=['1. Tipe Anggota'],
-        summary="Buat tipe anggota baru",
-        description="Buat tipe/kategori anggota baru untuk mengklasifikasikan anggota perpustakaan."
-    ),
-    update=extend_schema(
-        tags=['1. Tipe Anggota'],
-        summary="Perbarui tipe anggota sepenuhnya",
-        description="Perbarui semua field tipe anggota yang ada dengan data baru."
-    ),
-    partial_update=extend_schema(
-        tags=['1. Tipe Anggota'],
-        summary="Perbarui tipe anggota sebagian",
-        description="Perbarui field tertentu dari tipe anggota yang ada tanpa mempengaruhi field lain."
-    ),
-    destroy=extend_schema(
-        tags=['1. Tipe Anggota'],
-        summary="Hapus tipe anggota",
-        description="Hapus tipe anggota dari sistem secara permanen."
+        description="Ambil informasi detail tentang tipe anggota tertentu berdasarkan ID. Data ini bersifat konstan."
     ),
 )
-class MstMemberTypeViewSet(viewsets.ModelViewSet):
+class MstMemberTypeViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ViewSet for Member Type CRUD operations.
+    ViewSet for Member Type operations.
 
-    Provides complete CRUD functionality for member types including:
-    - Listing all member types
-    - Retrieving individual member type details
-    - Creating new member types
-    - Updating existing member types
-    - Deleting member types
+    Provides read-only functionality for constant member types:
+    - Listing all member types (constant data)
+    - Retrieving individual member type details (constant data)
+
+    Note: Member types are now constants and cannot be modified through the API.
     """
-    queryset = MstMemberType.objects.all()
     serializer_class = MstMemberTypeSerializer
+
+    def get_queryset(self):
+        # Return constant data instead of database query
+        return MEMBER_TYPES_DATA
+
+    def list(self, request, *args, **kwargs):
+        """Return constant member types data"""
+        serializer = self.get_serializer(MEMBER_TYPES_DATA, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        """Return specific member type from constant data"""
+        member_type_id = int(kwargs['pk'])
+        member_type = next((mt for mt in MEMBER_TYPES_DATA if mt['member_type_id'] == member_type_id), None)
+        if member_type:
+            serializer = self.get_serializer(member_type)
+            return Response(serializer.data)
+        return Response({'error': 'Member type not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    def create(self, request, *args, **kwargs):
+        """Member types are constants and cannot be created"""
+        return Response({'error': 'Member types are constants and cannot be modified'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def update(self, request, *args, **kwargs):
+        """Member types are constants and cannot be updated"""
+        return Response({'error': 'Member types are constants and cannot be modified'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def partial_update(self, request, *args, **kwargs):
+        """Member types are constants and cannot be partially updated"""
+        return Response({'error': 'Member types are constants and cannot be modified'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def destroy(self, request, *args, **kwargs):
+        """Member types are constants and cannot be deleted"""
+        return Response({'error': 'Member types are constants and cannot be modified'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 @extend_schema_view(

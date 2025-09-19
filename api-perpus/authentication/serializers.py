@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import User, UserGroup, GroupAccess, SystemLog
-from user.models import Member, MstMemberType
+from user.models import Member
+from user.views import MEMBER_TYPES_DATA  # Import constant member types data
 from django.contrib.auth.hashers import make_password
 
 class RegisterSerializer(serializers.Serializer):
@@ -32,12 +33,14 @@ class RegisterSerializer(serializers.Serializer):
         if data['password'] != data['konfirmasi_password']:
             raise serializers.ValidationError("Password dan konfirmasi password tidak cocok")
 
-        # Validate membership type exists
-        try:
-            member_type = MstMemberType.objects.get(member_type_name=data['tipe_keanggotaan'])
-            data['member_type_id'] = member_type.member_type_id
-        except MstMemberType.DoesNotExist:
+        # Validate membership type exists in constant data
+        member_type_names = [mt['member_type_name'] for mt in MEMBER_TYPES_DATA]
+        if data['tipe_keanggotaan'] not in member_type_names:
             raise serializers.ValidationError("Tipe keanggotaan tidak valid")
+
+        # Get member_type_id from constant data
+        member_type = next(mt for mt in MEMBER_TYPES_DATA if mt['member_type_name'] == data['tipe_keanggotaan'])
+        data['member_type_id'] = member_type['member_type_id']
 
         # Validate NIK uniqueness
         if Member.objects.filter(member_id=data['nik']).exists():

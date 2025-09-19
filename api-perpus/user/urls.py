@@ -4,7 +4,7 @@ from .views import MemberViewSet, MstMemberTypeViewSet, VisitorCountViewSet, Com
 
 router = DefaultRouter()
 router.register(r'members', MemberViewSet)
-router.register(r'member-types', MstMemberTypeViewSet)
+router.register(r'member-types', MstMemberTypeViewSet, basename='member-types')
 router.register(r'visitors', VisitorCountViewSet)
 router.register(r'comments', CommentViewSet)
 
