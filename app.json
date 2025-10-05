@@ -4,7 +4,7 @@
     "slug": "perpuskab",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/undraw.png",
+    "icon": "./assets/images/depan.png",
     "scheme": "perpuskab",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/undraw.png",
+        "foregroundImage": "./assets/images/depan.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
