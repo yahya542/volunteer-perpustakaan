@@ -9,7 +9,6 @@ const ComponentPinjaman = () => {
   }, []);
 
 
-  
   const fetchLoans = async () => {
     try {
       const response = await fetch('https://0b8763b66148.ngrok-free.app/api/biblio/');
