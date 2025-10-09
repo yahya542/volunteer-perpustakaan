@@ -8,6 +8,7 @@ const ComponentPinjaman = () => {
     fetchLoans();
   }, []);
 
+
   
   const fetchLoans = async () => {
     try {
