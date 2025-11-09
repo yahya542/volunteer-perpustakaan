@@ -13,13 +13,13 @@ const FirstScreen = () => {
         />
       </View>
       <View style={styles.containerButton}>
-        <TouchableOpacity style={styles.buttonSignIn} onPress={() => router.push('/user/Login')}>
+        <TouchableOpacity style={styles.buttonSignIn} onPress={() => router.push('./user/Login')}>
           <Text style={styles.textSignIn}>Sign In</Text>
         </TouchableOpacity>
         <Text style={{ fontSize: 20, fontWeight: "bold", color: "#717171" }}>
           Already have an account
         </Text>
-        <TouchableOpacity activeOpacity={0.7} style={styles.buttonSignUp} onPress={() => router.push('/user/Register')}>
+        <TouchableOpacity activeOpacity={0.7} style={styles.buttonSignUp} onPress={() => router.push('/user/DataPertama')}>
           <Text style={styles.textSignUp}>Create Account</Text>
         </TouchableOpacity>
       </View>
