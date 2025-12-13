@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from .models import User, UserGroup, GroupAccess, SystemLog
 from user.models import Member
 from .serializers import (
-    RegisterSerializer, LoginSerializer, VerifyTokenSerializer,
+    RegisterSerializer, LoginSerializer, VerifyTokenSerializer, RefreshTokenSerializer,
     UserSerializer, UserGroupSerializer, GroupAccessSerializer, SystemLogSerializer
 )
 from django.core.mail import send_mail
@@ -176,6 +177,75 @@ class LoginView(APIView):
         return Response({'error': 'Invalid credentials or account not verified'}, status=400)
 
 
+class RefreshTokenView(APIView):
+    """
+    API endpoint for refreshing tokens with email and password.
+    
+    Authenticates users by verifying their email and password against
+    the stored credentials. Returns new JWT tokens for authenticated requests.
+    """
+    @extend_schema(
+        summary="Refresh User Token",
+        description="Authenticate user by verifying email and password. Returns new JWT tokens for authenticated requests.",
+        request=RefreshTokenSerializer,
+        responses={
+            200: {
+                "type": "object",
+                "properties": {
+                    "message": {"type": "string"},
+                    "username": {"type": "string"},
+                    "user_type": {"type": "integer"},
+                    "access_token": {"type": "string"},
+                    "refresh_token": {"type": "string"},
+                    "token_type": {"type": "string"},
+                    "expires_in": {"type": "integer"}
+                }
+            },
+            400: {"type": "object", "properties": {"error": {"type": "string"}}}
+        },
+    )
+
+    def post(self, request):
+        serializer = RefreshTokenSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+            
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+
+        # Find user by email
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid credentials'}, status=400)
+
+        # Verify password
+        if not check_password(password, user.passwd):
+            return Response({'error': 'Invalid credentials'}, status=400)
+
+        # Check if member account is active (not pending verification)
+        try:
+            member = Member.objects.get(member_id=user.username)
+            if member.is_pending == 1:
+                return Response({'error': 'Account belum diverifikasi. Silakan verifikasi email Anda terlebih dahulu.'}, status=400)
+        except Member.DoesNotExist:
+            return Response({'error': 'Data member tidak ditemukan'}, status=400)
+
+        # Generate new JWT tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+
+        return Response({
+            'message': 'Token refreshed successfully',
+            'username': user.username,
+            'user_type': user.user_type,
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'token_type': 'Bearer',
+            'expires_in': 3600  # 1 hour
+        }, status=200)
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -340,7 +410,7 @@ class GroupAccessViewSet(viewsets.ModelViewSet):
 
     Provides complete CRUD functionality for group access permissions including:
     - Listing all group access permissions
-    - Retrieving individual group access details
+    - Retrieving individual group access permission details
     - Creating new group access permissions
     - Updating existing group access permissions
     - Deleting group access permissions
@@ -353,44 +423,21 @@ class GroupAccessViewSet(viewsets.ModelViewSet):
     list=extend_schema(
         tags=['4. System Logs'],
         summary="List all system logs",
-        description="Retrieve a list of all system log entries for auditing and monitoring purposes."
+        description="Retrieve a list of all system activity logs."
     ),
     retrieve=extend_schema(
         tags=['4. System Logs'],
         summary="Get system log details",
         description="Retrieve detailed information about a specific system log entry by its ID."
     ),
-    create=extend_schema(
-        tags=['4. System Logs'],
-        summary="Create new system log entry",
-        description="Create a new system log entry to record system activities."
-    ),
-    update=extend_schema(
-        tags=['4. System Logs'],
-        summary="Update system log completely",
-        description="Update all fields of an existing system log entry with new data."
-    ),
-    partial_update=extend_schema(
-        tags=['4. System Logs'],
-        summary="Update system log partially",
-        description="Update specific fields of an existing system log entry without affecting other fields."
-    ),
-    destroy=extend_schema(
-        tags=['4. System Logs'],
-        summary="Delete system log entry",
-        description="Remove a system log entry from the system permanently."
-    ),
 )
-class SystemLogViewSet(viewsets.ModelViewSet):
+class SystemLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    ViewSet for System Log CRUD operations.
+    ViewSet for System Log read-only operations.
 
-    Provides complete CRUD functionality for system logs including:
-    - Listing all system log entries
-    - Retrieving individual log details
-    - Creating new log entries
-    - Updating existing log entries
-    - Deleting log entries
+    Provides read-only access to system logs including:
+    - Listing all system logs
+    - Retrieving individual system log details
     """
     queryset = SystemLog.objects.all()
     serializer_class = SystemLogSerializer

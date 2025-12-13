@@ -147,7 +147,6 @@ class RegisterSerializer(serializers.Serializer):
         Terima kasih,
         Tim Perpustakaan
         """
-
         try:
             send_mail(
                 subject=subject,
@@ -180,6 +179,15 @@ class LoginSerializer(serializers.Serializer):
     """
     username = serializers.CharField(max_length=50)
     password = serializers.CharField(write_only=True)
+
+
+class RefreshTokenSerializer(serializers.Serializer):
+    """
+    Serializer for refreshing tokens with email and password.
+    """
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

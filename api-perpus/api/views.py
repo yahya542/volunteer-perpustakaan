@@ -15,6 +15,7 @@ from .serializers import (
     MstPublisherSerializer, MstPlaceSerializer, MstSupplierSerializer, MstAuthorSerializer, MstTopicSerializer,
     MstFrequencySerializer, MstLoanRulesSerializer, MstLabelSerializer, SettingSerializer
 )
+from .permissions import ReadOnlyOrAuthenticated, LoanPermission, ReservePermission, FinePermission
 
 
 @extend_schema_view(
@@ -63,6 +64,7 @@ class BiblioViewSet(viewsets.ModelViewSet):
     """
     queryset = Biblio.objects.all()
     serializer_class = BiblioSerializer
+    permission_classes = [ReadOnlyOrAuthenticated]
 
     @action(detail=True, methods=['get'])
     @extend_schema(
@@ -127,6 +129,7 @@ class ItemViewSet(viewsets.ModelViewSet):
     """
     queryset = Item.objects.all()
     serializer_class = ItemSerializer
+    permission_classes = [ReadOnlyOrAuthenticated]
 
     @action(detail=True, methods=['post'])
     @extend_schema(
@@ -209,6 +212,7 @@ class LoanViewSet(viewsets.ModelViewSet):
     """
     queryset = Loan.objects.all()
     serializer_class = LoanSerializer
+    permission_classes = [LoanPermission]
 
     @action(detail=True, methods=['post'])
     @extend_schema(
@@ -296,6 +300,7 @@ class ReserveViewSet(viewsets.ModelViewSet):
     """
     queryset = Reserve.objects.all()
     serializer_class = ReserveSerializer
+    permission_classes = [ReservePermission]
 
     @action(detail=False, methods=['get'], url_path='wishlist/(?P<member_id>[^/.]+)')
     @extend_schema(
@@ -398,6 +403,7 @@ class FinesViewSet(viewsets.ModelViewSet):
     """
     queryset = Fines.objects.all()
     serializer_class = FinesSerializer
+    permission_classes = [FinePermission]
 
 
 # Master Data ViewSets

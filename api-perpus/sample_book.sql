@@ -10,6 +10,12 @@ VALUES ('en', 'English', CURDATE());
 INSERT IGNORE INTO mst_publisher (publisher_id, publisher_name, input_date) 
 VALUES (1, 'Sample Publisher', CURDATE());
 
+INSERT IGNORE INTO mst_author (author_id, author_name, authority_type, input_date) 
+VALUES (1, 'Muhammad Yahya A.', 'p', CURDATE());
+
+INSERT IGNORE INTO mst_publisher (publisher_id, publisher_name, input_date) 
+VALUES (1, 'Sample Publisher', CURDATE());
+
 -- Add a GMD (General Material Designation) if it doesn't exist
 INSERT IGNORE INTO mst_gmd (gmd_id, gmd_code, gmd_name, input_date) 
 VALUES (1, 'BK', 'Book', CURDATE());
@@ -55,6 +61,10 @@ INSERT INTO biblio (
     NOW()
 );
 
+INSERT IGNORE INTO biblio_author (biblio_id, author_id, level) 
+VALUES (LAST_INSERT_ID(), 1, 1);
+
+
 -- Also add a sample item for this book
 INSERT INTO item (
     biblio_id,
@@ -72,8 +82,8 @@ INSERT INTO item (
     LAST_INSERT_ID(),  -- Use the ID of the book we just inserted
     'SA.005 .K57 2022',
     1,  -- coll_type_id
-    'BK000002',
-    'INV002',
+    'BK00001',
+    'INV001',
     CURDATE(),
     'L01',  -- location_id
     'AV',   -- item_status_id

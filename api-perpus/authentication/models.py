@@ -5,7 +5,6 @@ class User(models.Model):
     username = models.CharField(max_length=50, unique=True)
     realname = models.CharField(max_length=100)
     passwd = models.CharField(max_length=64)
-    fa = models.TextField(blank=True, null=True)  # 2fa renamed to fa
     email = models.CharField(max_length=200, blank=True, null=True)
     user_type = models.SmallIntegerField(blank=True, null=True)
     user_image = models.CharField(max_length=250, blank=True, null=True)
