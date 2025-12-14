@@ -1,6 +1,4 @@
 from django.db import models
-from rest_framework import serializers
-from django.db import models
 
 class Biblio(models.Model):
     biblio_id = models.AutoField(primary_key=True)
@@ -46,6 +44,95 @@ class Biblio(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class MstGmd(models.Model):
+    gmd_id = models.AutoField(primary_key=True)
+    gmd_code = models.CharField(max_length=3, blank=True, null=True, unique=True)
+    gmd_name = models.CharField(max_length=30, unique=True)
+    icon_image = models.CharField(max_length=100, blank=True, null=True)
+    input_date = models.DateField()
+    last_update = models.DateField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'mst_gmd'
+
+    def __str__(self):
+        return self.gmd_name
+
+
+class MstLanguage(models.Model):
+    language_id = models.CharField(max_length=5, primary_key=True)
+    language_name = models.CharField(max_length=20, unique=True)
+    input_date = models.DateField(blank=True, null=True)
+    last_update = models.DateField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'mst_language'
+
+    def __str__(self):
+        return self.language_name
+
+
+class MstPublisher(models.Model):
+    publisher_id = models.AutoField(primary_key=True)
+    publisher_name = models.CharField(max_length=100, unique=True)
+    input_date = models.DateField()
+    last_update = models.DateField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'mst_publisher'
+
+    def __str__(self):
+        return self.publisher_name
+
+
+class MstAuthor(models.Model):
+    author_id = models.AutoField(primary_key=True)
+    author_name = models.CharField(max_length=100, unique=True)
+    author_year = models.CharField(max_length=20, blank=True, null=True)
+    authority_type = models.CharField(max_length=1, default='p')
+    auth_list = models.CharField(max_length=20, blank=True, null=True)
+    input_date = models.DateField()
+    last_update = models.DateField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'mst_author'
+
+    def __str__(self):
+        return self.author_name
+
+
+class BiblioAuthor(models.Model):
+    biblio_id = models.IntegerField()
+    author_id = models.IntegerField()
+    level = models.IntegerField(default=1)
+
+    class Meta:
+        db_table = 'biblio_author'
+        unique_together = ('biblio_id', 'author_id')
+
+    def __str__(self):
+        return f"Biblio {self.biblio_id} - Author {self.author_id}"
+
+
+class LoanHistory(models.Model):
+    loan_id = models.AutoField(primary_key=True)
+    item_code = models.CharField(max_length=20)
+    member_id = models.CharField(max_length=20)
+    loan_date = models.DateField()
+    due_date = models.DateField()
+    return_date = models.DateField(blank=True, null=True)
+    input_date = models.DateTimeField()
+    last_update = models.DateTimeField(blank=True, null=True)
+    uid = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'loan_history'
+
+    def __str__(self):
+        return f"Loan {self.loan_id}"
 
 class Item(models.Model):
     item_id = models.AutoField(primary_key=True)
@@ -143,32 +230,6 @@ class Fines(models.Model):
             models.Index(fields=['member_id']),
         ]
 
-class MstGmd(models.Model):
-    gmd_id = models.AutoField(primary_key=True)
-    gmd_code = models.CharField(max_length=3, blank=True, null=True, unique=True)
-    gmd_name = models.CharField(max_length=30, unique=True)
-    icon_image = models.CharField(max_length=100, blank=True, null=True)
-    input_date = models.DateField()
-    last_update = models.DateField(blank=True, null=True)
-
-    class Meta:
-        db_table = 'mst_gmd'
-
-    def __str__(self):
-        return self.gmd_name
-
-class MstLanguage(models.Model):
-    language_id = models.CharField(max_length=5, primary_key=True)
-    language_name = models.CharField(max_length=20, unique=True)
-    input_date = models.DateField(blank=True, null=True)
-    last_update = models.DateField(blank=True, null=True)
-
-    class Meta:
-        db_table = 'mst_language'
-
-    def __str__(self):
-        return self.language_name
-
 class MstLocation(models.Model):
     location_id = models.CharField(max_length=3, primary_key=True)
     location_name = models.CharField(max_length=100, blank=True, null=True, unique=True)
@@ -208,18 +269,6 @@ class MstItemStatus(models.Model):
     def __str__(self):
         return self.item_status_name
 
-class MstPublisher(models.Model):
-    publisher_id = models.AutoField(primary_key=True)
-    publisher_name = models.CharField(max_length=100, unique=True)
-    input_date = models.DateField(blank=True, null=True)
-    last_update = models.DateField(blank=True, null=True)
-
-    class Meta:
-        db_table = 'mst_publisher'
-
-    def __str__(self):
-        return self.publisher_name
-
 class MstPlace(models.Model):
     place_id = models.AutoField(primary_key=True)
     place_name = models.CharField(max_length=30, unique=True)
@@ -250,21 +299,6 @@ class MstSupplier(models.Model):
 
     def __str__(self):
         return self.supplier_name
-
-class MstAuthor(models.Model):
-    author_id = models.AutoField(primary_key=True)
-    author_name = models.CharField(max_length=100, unique=True)
-    author_year = models.CharField(max_length=20, blank=True, null=True)
-    authority_type = models.CharField(max_length=1, choices=[('p', 'Person'), ('o', 'Organization'), ('c', 'Conference')], default='p')
-    auth_list = models.CharField(max_length=20, blank=True, null=True)
-    input_date = models.DateField()
-    last_update = models.DateField(blank=True, null=True)
-
-    class Meta:
-        db_table = 'mst_author'
-
-    def __str__(self):
-        return self.author_name
 
 class MstTopic(models.Model):
     topic_id = models.AutoField(primary_key=True)
@@ -440,18 +474,6 @@ class BiblioAttachment(models.Model):
 
     def __str__(self):
         return f"Attachment {self.biblio_id}-{self.file_id}"
-
-class BiblioAuthor(models.Model):
-    biblio_id = models.IntegerField()
-    author_id = models.IntegerField()
-    level = models.IntegerField(default=1)
-
-    class Meta:
-        db_table = 'biblio_author'
-        unique_together = ('biblio_id', 'author_id')
-
-    def __str__(self):
-        return f"Biblio {self.biblio_id} - Author {self.author_id}"
 
 class BiblioTopic(models.Model):
     biblio_id = models.IntegerField()
@@ -721,39 +743,6 @@ class BiblioLog(models.Model):
 
     def __str__(self):
         return f"Log {self.biblio_log_id}"
-
-class LoanHistory(models.Model):
-    loan_id = models.IntegerField(primary_key=True)
-    item_code = models.CharField(max_length=20, blank=True, null=True)
-    biblio_id = models.IntegerField()
-    title = models.CharField(max_length=300, blank=True, null=True)
-    call_number = models.CharField(max_length=50, blank=True, null=True)
-    classification = models.CharField(max_length=40, blank=True, null=True)
-    gmd_name = models.CharField(max_length=30, blank=True, null=True)
-    language_name = models.CharField(max_length=20, blank=True, null=True)
-    location_name = models.CharField(max_length=100, blank=True, null=True)
-    collection_type_name = models.CharField(max_length=100, blank=True, null=True)
-    member_id = models.CharField(max_length=20, blank=True, null=True)
-    member_name = models.CharField(max_length=100, blank=True, null=True)
-    member_type_name = models.CharField(max_length=64, blank=True, null=True)
-    loan_date = models.DateField(blank=True, null=True)
-    due_date = models.DateField(blank=True, null=True)
-    renewed = models.IntegerField(default=0)
-    is_lent = models.IntegerField(default=0)
-    is_return = models.IntegerField(default=0)
-    return_date = models.DateField(blank=True, null=True)
-    input_date = models.DateTimeField(blank=True, null=True)
-    last_update = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'loan_history'
-        indexes = [
-            models.Index(fields=['member_name']),
-        ]
-
-    def __str__(self):
-        return f"History {self.loan_id}"
 
 class FilesRead(models.Model):
     filelog_id = models.AutoField(primary_key=True)

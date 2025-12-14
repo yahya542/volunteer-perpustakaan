@@ -1,0 +1,149 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Book Data</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Library Book Data</h1>
+    
+    <div class="container">
+        <h2>Book Collection</h2>
+        <div class="endpoint-card">
+            <button onclick="loadBooks()">Load Books</button>
+            <div id="status-message" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: none;"></div>
+            <div id="data-display" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = 'http://localhost:8000';
+
+        // Function to show status messages
+        function showStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            statusDiv.style.backgroundColor = isError ? '#ffebee' : '#e8f5e9';
+            statusDiv.style.border = `1px solid ${isError ? '#ffcdd2' : '#c8e6c9'}`;
+            statusDiv.style.color = isError ? '#c62828' : '#2e7d32';
+        }
+
+        // Function to load books data
+        function loadBooks() {
+            showStatus('Loading books...');
+            
+            // Load data from biblio endpoint with related data
+            fetch(`${baseUrl}/api/biblio/?include_related=true`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    showStatus('Books loaded successfully!', false);
+                    displayBooks(data);
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    showStatus(`Error loading books: ${error.message}`, true);
+                    document.getElementById('data-display').innerHTML = `<p>Error loading books: ${error.message}</p>`;
+                });
+        }
+
+        // Function to display books
+        function displayBooks(books) {
+            const container = document.getElementById('data-display');
+            
+            // Handle both array and paginated responses
+            let booksData = [];
+            if (Array.isArray(books)) {
+                booksData = books;
+            } else if (books.results && Array.isArray(books.results)) {
+                booksData = books.results;
+            } else {
+                booksData = [books]; // Single book object
+            }
+            
+            if (booksData.length === 0) {
+                container.innerHTML = '<p>No books found.</p>';
+                return;
+            }
+            
+            let html = `
+                <div class="combined-card">
+                    <h2>📚 Library Books</h2>
+                    <p>Total Books: ${booksData.length}</p>
+                    
+                    <div class="book-grid">
+            `;
+            
+            booksData.forEach(book => {
+                // Extract author information if available
+                let authorDetails = '';
+                if (book.authors && Array.isArray(book.authors) && book.authors.length > 0) {
+                    authorDetails = '<p><strong>Authors:</strong></p><ul>';
+                    book.authors.forEach(author => {
+                        authorDetails += `<li>${author.author_name || 'Unknown Author'}</li>`;
+                    });
+                    authorDetails += '</ul>';
+                } else {
+                    authorDetails = '<p><strong>Authors:</strong> N/A</p>';
+                }
+                
+                // Extract publisher information if available
+                let publisherInfo = '';
+                if (book.publisher) {
+                    publisherInfo = `<p><strong>Publisher:</strong> ${book.publisher.publisher_name || 'N/A'}</p>`;
+                }
+                
+                // Extract language information if available
+                let languageInfo = '';
+                if (book.language) {
+                    languageInfo = `<p><strong>Language:</strong> ${book.language.language_name || 'N/A'}</p>`;
+                }
+                
+                // Extract GMD information if available
+                let gmdInfo = '';
+                if (book.gmd) {
+                    gmdInfo = `<p><strong>GMD:</strong> ${book.gmd.gmd_name || 'N/A'}</p>`;
+                }
+                
+                html += `
+                    <div class="book-card">
+                        <div class="book-header">
+                            <h4>${book.title || 'Untitled Book'}</h4>
+                        </div>
+                        <div class="book-details">
+                            <p><strong>Book ID:</strong> ${book.biblio_id || 'N/A'}</p>
+                            <p><strong>Edition:</strong> ${book.edition || 'N/A'}</p>
+                            <p><strong>ISBN:</strong> ${book.isbn_issn || 'N/A'}</p>
+                            <p><strong>Publish Year:</strong> ${book.publish_year || 'N/A'}</p>
+                            <p><strong>Classification:</strong> ${book.classification || 'N/A'}</p>
+                            ${authorDetails}
+                            ${publisherInfo}
+                            ${languageInfo}
+                            ${gmdInfo}
+                            ${book.notes ? `<p><strong>Notes:</strong> ${book.notes}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // Load books when page loads
+        window.onload = function() {
+            loadBooks();
+        };
+    </script>
+</body>
+</html>
