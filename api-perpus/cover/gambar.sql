@@ -1,3 +1,3 @@
 UPDATE biblio 
-SET image = 'covers/python_dasar.jpg' 
+SET image = 'hsai.png' 
 WHERE biblio_id = 1;

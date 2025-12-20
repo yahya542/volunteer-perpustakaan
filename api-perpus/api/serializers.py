@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Biblio, LoanHistory
+    Biblio, LoanHistory, MstPublisher, MstAuthor
 )
 
 class BiblioSerializer(serializers.ModelSerializer):
@@ -14,6 +14,20 @@ class LoanHistorySerializer(serializers.ModelSerializer):
         model = LoanHistory
         fields = '__all__'
         read_only_fields = ['loan_id']
+
+class PublisherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MstPublisher
+        fields = '__all__'
+        read_only_fields = ['publisher_id', 'input_date', 'last_update']
+
+
+class AuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MstAuthor
+        fields = '__all__'
+        read_only_fields = ['author_id', 'input_date', 'last_update']
+
 
 class DetailedBiblioSerializer(serializers.ModelSerializer):
     authors = serializers.SerializerMethodField()

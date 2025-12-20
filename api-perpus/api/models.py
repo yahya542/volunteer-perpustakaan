@@ -29,7 +29,6 @@ class Biblio(models.Model):
     carrier_type_id = models.IntegerField(blank=True, null=True)
     input_date = models.DateTimeField(blank=True, null=True)
     last_update = models.DateTimeField(blank=True, null=True)
-    uid = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -39,7 +38,6 @@ class Biblio(models.Model):
             models.Index(fields=['classification']),
             models.Index(fields=['opac_hide', 'promoted']),
             models.Index(fields=['content_type_id', 'media_type_id', 'carrier_type_id']),
-            models.Index(fields=['uid']),
         ]
 
     def __str__(self):
@@ -125,7 +123,6 @@ class LoanHistory(models.Model):
     return_date = models.DateField(blank=True, null=True)
     input_date = models.DateTimeField()
     last_update = models.DateTimeField(blank=True, null=True)
-    uid = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -133,6 +130,7 @@ class LoanHistory(models.Model):
 
     def __str__(self):
         return f"Loan {self.loan_id}"
+
 
 class Item(models.Model):
     item_id = models.AutoField(primary_key=True)
@@ -155,19 +153,18 @@ class Item(models.Model):
     invoice_date = models.DateField(blank=True, null=True)
     input_date = models.DateTimeField()
     last_update = models.DateTimeField(blank=True, null=True)
-    uid = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'item'
         indexes = [
-            models.Index(fields=['uid']),
             models.Index(fields=['coll_type_id', 'location_id', 'item_status_id']),
             models.Index(fields=['biblio_id']),
         ]
 
     def __str__(self):
         return self.item_code or str(self.item_id)
+
 
 class Loan(models.Model):
     loan_id = models.AutoField(primary_key=True)
@@ -183,7 +180,6 @@ class Loan(models.Model):
     return_date = models.DateField(blank=True, null=True)
     input_date = models.DateTimeField(blank=True, null=True)
     last_update = models.DateTimeField(blank=True, null=True)
-    uid = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -191,11 +187,11 @@ class Loan(models.Model):
         indexes = [
             models.Index(fields=['item_code']),
             models.Index(fields=['member_id']),
-            models.Index(fields=['input_date', 'last_update', 'uid']),
         ]
 
     def __str__(self):
         return f"Loan {self.loan_id}"
+
 
 class Reserve(models.Model):
     reserve_id = models.AutoField(primary_key=True)
@@ -215,6 +211,7 @@ class Reserve(models.Model):
     def __str__(self):
         return f"Reserve {self.reserve_id}"
 
+
 class Fines(models.Model):
     fines_id = models.AutoField(primary_key=True)
     fines_date = models.DateField()
@@ -230,6 +227,7 @@ class Fines(models.Model):
             models.Index(fields=['member_id']),
         ]
 
+
 class MstLocation(models.Model):
     location_id = models.CharField(max_length=3, primary_key=True)
     location_name = models.CharField(max_length=100, blank=True, null=True, unique=True)
@@ -242,6 +240,7 @@ class MstLocation(models.Model):
     def __str__(self):
         return self.location_name
 
+
 class MstCollType(models.Model):
     coll_type_id = models.AutoField(primary_key=True)
     coll_type_name = models.CharField(max_length=30, unique=True)
@@ -253,6 +252,7 @@ class MstCollType(models.Model):
 
     def __str__(self):
         return self.coll_type_name
+
 
 class MstItemStatus(models.Model):
     item_status_id = models.CharField(max_length=3, primary_key=True)
@@ -269,6 +269,7 @@ class MstItemStatus(models.Model):
     def __str__(self):
         return self.item_status_name
 
+
 class MstPlace(models.Model):
     place_id = models.AutoField(primary_key=True)
     place_name = models.CharField(max_length=30, unique=True)
@@ -280,6 +281,7 @@ class MstPlace(models.Model):
 
     def __str__(self):
         return self.place_name
+
 
 class MstSupplier(models.Model):
     supplier_id = models.AutoField(primary_key=True)
@@ -299,6 +301,7 @@ class MstSupplier(models.Model):
 
     def __str__(self):
         return self.supplier_name
+
 
 class MstTopic(models.Model):
     topic_id = models.AutoField(primary_key=True)
@@ -322,6 +325,7 @@ class MstTopic(models.Model):
     def __str__(self):
         return self.topic
 
+
 class MstFrequency(models.Model):
     frequency_id = models.AutoField(primary_key=True)
     frequency = models.CharField(max_length=25)
@@ -342,6 +346,7 @@ class MstFrequency(models.Model):
     def __str__(self):
         return self.frequency
 
+
 class MstLoanRules(models.Model):
     loan_rules_id = models.AutoField(primary_key=True)
     member_type_id = models.IntegerField(default=0)
@@ -361,6 +366,7 @@ class MstLoanRules(models.Model):
     def __str__(self):
         return f"Loan Rules {self.loan_rules_id}"
 
+
 class MstLabel(models.Model):
     label_id = models.AutoField(primary_key=True)
     label_name = models.CharField(max_length=20, unique=True)
@@ -374,6 +380,7 @@ class MstLabel(models.Model):
 
     def __str__(self):
         return self.label_name
+
 
 class MstCarrierType(models.Model):
     id = models.AutoField(primary_key=True)
@@ -392,6 +399,7 @@ class MstCarrierType(models.Model):
     def __str__(self):
         return self.carrier_type
 
+
 class MstContentType(models.Model):
     id = models.AutoField(primary_key=True)
     content_type = models.CharField(max_length=100, unique=True)
@@ -408,6 +416,7 @@ class MstContentType(models.Model):
 
     def __str__(self):
         return self.content_type
+
 
 class MstMediaType(models.Model):
     id = models.AutoField(primary_key=True)
@@ -426,6 +435,7 @@ class MstMediaType(models.Model):
     def __str__(self):
         return self.media_type
 
+
 class MstRelationTerm(models.Model):
     id = models.AutoField(primary_key=True)
     rt_id = models.CharField(max_length=11)
@@ -436,6 +446,7 @@ class MstRelationTerm(models.Model):
 
     def __str__(self):
         return self.rt_desc
+
 
 class MstVocCtrl(models.Model):
     vocabolary_id = models.AutoField(primary_key=True)
@@ -449,6 +460,7 @@ class MstVocCtrl(models.Model):
 
     def __str__(self):
         return f"Voc Ctrl {self.vocabolary_id}"
+
 
 class BiblioAttachment(models.Model):
     biblio_id = models.IntegerField()
@@ -475,6 +487,7 @@ class BiblioAttachment(models.Model):
     def __str__(self):
         return f"Attachment {self.biblio_id}-{self.file_id}"
 
+
 class BiblioTopic(models.Model):
     biblio_id = models.IntegerField()
     topic_id = models.IntegerField()
@@ -486,6 +499,7 @@ class BiblioTopic(models.Model):
 
     def __str__(self):
         return f"Biblio {self.biblio_id} - Topic {self.topic_id}"
+
 
 class BiblioRelation(models.Model):
     biblio_id = models.IntegerField()
@@ -499,6 +513,7 @@ class BiblioRelation(models.Model):
     def __str__(self):
         return f"Relation {self.biblio_id} - {self.rel_biblio_id}"
 
+
 class BiblioCustom(models.Model):
     biblio_id = models.IntegerField(primary_key=True)
 
@@ -507,6 +522,7 @@ class BiblioCustom(models.Model):
 
     def __str__(self):
         return str(self.biblio_id)
+
 
 class SearchBiblio(models.Model):
     biblio_id = models.IntegerField(primary_key=True)
@@ -550,6 +566,7 @@ class SearchBiblio(models.Model):
     def __str__(self):
         return self.title or str(self.biblio_id)
 
+
 class Kardex(models.Model):
     kardex_id = models.AutoField(primary_key=True)
     date_expected = models.DateField()
@@ -568,6 +585,7 @@ class Kardex(models.Model):
 
     def __str__(self):
         return f"Kardex {self.kardex_id}"
+
 
 class Serial(models.Model):
     serial_id = models.AutoField(primary_key=True)
@@ -590,6 +608,7 @@ class Serial(models.Model):
     def __str__(self):
         return f"Serial {self.serial_id}"
 
+
 class Holiday(models.Model):
     holiday_id = models.AutoField(primary_key=True)
     holiday_dayname = models.CharField(max_length=20)
@@ -602,6 +621,7 @@ class Holiday(models.Model):
 
     def __str__(self):
         return self.holiday_dayname
+
 
 class StockTake(models.Model):
     stock_take_id = models.AutoField(primary_key=True)
@@ -622,6 +642,7 @@ class StockTake(models.Model):
 
     def __str__(self):
         return self.stock_take_name
+
 
 class StockTakeItem(models.Model):
     stock_take_id = models.IntegerField()
@@ -654,6 +675,7 @@ class StockTakeItem(models.Model):
     def __str__(self):
         return f"{self.item_code} - {self.title}"
 
+
 class Files(models.Model):
     file_id = models.AutoField(primary_key=True)
     file_title = models.TextField()
@@ -677,6 +699,7 @@ class Files(models.Model):
     def __str__(self):
         return self.file_title
 
+
 class Content(models.Model):
     content_id = models.AutoField(primary_key=True)
     content_title = models.CharField(max_length=255)
@@ -693,6 +716,7 @@ class Content(models.Model):
     def __str__(self):
         return self.content_title
 
+
 class Setting(models.Model):
     setting_id = models.AutoField(primary_key=True)
     setting_name = models.CharField(max_length=30, unique=True)
@@ -703,6 +727,7 @@ class Setting(models.Model):
 
     def __str__(self):
         return self.setting_name
+
 
 class BackupLog(models.Model):
     backup_log_id = models.AutoField(primary_key=True)
@@ -715,6 +740,7 @@ class BackupLog(models.Model):
 
     def __str__(self):
         return f"Backup {self.backup_log_id}"
+
 
 class BiblioLog(models.Model):
     biblio_log_id = models.AutoField(primary_key=True)
@@ -744,6 +770,7 @@ class BiblioLog(models.Model):
     def __str__(self):
         return f"Log {self.biblio_log_id}"
 
+
 class FilesRead(models.Model):
     filelog_id = models.AutoField(primary_key=True)
     file_id = models.IntegerField()
@@ -758,6 +785,7 @@ class FilesRead(models.Model):
     def __str__(self):
         return f"Read {self.filelog_id}"
 
+
 class Plugins(models.Model):
     id = models.CharField(max_length=32, primary_key=True)
     path = models.TextField()
@@ -770,6 +798,7 @@ class Plugins(models.Model):
     def __str__(self):
         return self.id
 
+
 class IndexWords(models.Model):
     id = models.BigAutoField(primary_key=True)
     word = models.CharField(max_length=50)
@@ -781,6 +810,7 @@ class IndexWords(models.Model):
 
     def __str__(self):
         return self.word
+
 
 class IndexDocuments(models.Model):
     document_id = models.IntegerField()
@@ -800,6 +830,7 @@ class IndexDocuments(models.Model):
     def __str__(self):
         return f"Doc {self.document_id} - Word {self.word_id}"
 
+
 class MstModule(models.Model):
     module_id = models.AutoField(primary_key=True)
     module_name = models.CharField(max_length=50, unique=True)
@@ -811,6 +842,7 @@ class MstModule(models.Model):
 
     def __str__(self):
         return self.module_name
+
 
 class MstServers(models.Model):
     server_id = models.AutoField(primary_key=True)
@@ -825,6 +857,7 @@ class MstServers(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class MstCustomField(models.Model):
     field_id = models.AutoField(primary_key=True)

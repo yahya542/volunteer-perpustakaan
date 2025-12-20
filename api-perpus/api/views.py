@@ -1,28 +1,17 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import extend_schema
 from .models import (
-    Biblio, LoanHistory
+    Biblio, LoanHistory, MstPublisher, MstAuthor
 )
 from .serializers import (
     BiblioSerializer, LoanHistorySerializer,
-    DetailedBiblioSerializer
+    DetailedBiblioSerializer, PublisherSerializer, AuthorSerializer
 )
 from .permissions import ReadOnlyOrAuthenticated
 
-@extend_schema_view(
-    list=extend_schema(
-        tags=['2. Bibliografi'],
-        summary="Daftar semua rekaman bibliografi",
-        description="Ambil daftar semua rekaman bibliografi dalam koleksi perpustakaan."
-    ),
-    retrieve=extend_schema(
-        tags=['2. Bibliografi'],
-        summary="Dapatkan detail bibliografi",
-        description="Ambil informasi detail tentang rekaman bibliografi tertentu berdasarkan ID."
-    )
-)
+
 class BiblioViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Bibliography read-only operations.
@@ -57,18 +46,6 @@ class BiblioViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-@extend_schema_view(
-    list=extend_schema(
-        tags=['2. Riwayat Peminjaman'],
-        summary="Daftar semua rekaman riwayat peminjaman",
-        description="Ambil daftar semua rekaman peminjaman historis di perpustakaan."
-    ),
-    retrieve=extend_schema(
-        tags=['2. Riwayat Peminjaman'],
-        summary="Dapatkan detail riwayat peminjaman",
-        description="Ambil informasi detail tentang rekaman riwayat peminjaman tertentu berdasarkan ID."
-    ),
-)
 class LoanHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Loan History operations.
@@ -96,3 +73,28 @@ class LoanHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = LoanHistorySerializer(history, many=True)
         return Response(serializer.data)
 
+
+class PublisherViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for Publisher read-only operations.
+    
+    Provides read-only functionality for publishers including:
+    - Listing all publishers
+    - Retrieving individual publisher details
+    """
+    queryset = MstPublisher.objects.all()
+    serializer_class = PublisherSerializer
+    permission_classes = [ReadOnlyOrAuthenticated]
+
+
+class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for Author read-only operations.
+    
+    Provides read-only functionality for authors including:
+    - Listing all authors
+    - Retrieving individual author details
+    """
+    queryset = MstAuthor.objects.all()
+    serializer_class = AuthorSerializer
+    permission_classes = [ReadOnlyOrAuthenticated]
