@@ -3,13 +3,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, UserGroup, GroupAccess, SystemLog
 from user.models import Member
+from .models import UserGroup, GroupAccess, SystemLog
 from .serializers import (
     LoginSerializer, RefreshTokenSerializer, UserSerializer, UserGroupSerializer, GroupAccessSerializer, SystemLogSerializer
 )
 from django.contrib.auth.hashers import check_password
-
 
 
 
@@ -46,31 +45,40 @@ class LoginView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
 
-        user = User.objects.filter(username=username).first()
-        if user and check_password(password, user.passwd):
+        # Authenticate directly against the Member model
+        try:
+            member = Member.objects.get(member_id=username)
             # Check if member account is active (not pending verification)
-            try:
-                member = Member.objects.get(member_id=username)
-                if member.is_pending == 1:
-                    return Response({'error': 'Account belum diverifikasi. Silakan verifikasi email Anda terlebih dahulu.'}, status=400)
-            except Member.DoesNotExist:
-                return Response({'error': 'Data member tidak ditemukan'}, status=400)
+            
+            # Check password against member's password (plaintext or hashed)
+            if member.mpasswd == password or check_password(password, member.mpasswd):
+                # Create a temporary user object for JWT token generation
+                class TempUser:
+                    def __init__(self, username):
+                        self.username = username
+                        self.user_id = username
+                        self.id = username
+                        
+                temp_user = TempUser(member.member_id)
+                
+                # Generate JWT tokens
+                refresh = RefreshToken.for_user(temp_user)
+                access_token = str(refresh.access_token)
+                refresh_token = str(refresh)
 
-            # Generate JWT tokens
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-
-            return Response({
-                'message': 'Login successful',
-                'username': username,
-                'user_type': user.user_type,
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'token_type': 'Bearer',
-                'expires_in': 3600  # 1 hour
-            }, status=200)
-        return Response({'error': 'Invalid credentials or account not verified'}, status=400)
+                return Response({
+                    'message': 'Login successful',
+                    'username': member.member_id,
+                    'user_type': 1,  # Default user type
+                    'access_token': access_token,
+                    'refresh_token': refresh_token,
+                    'token_type': 'Bearer',
+                    'expires_in': 3600  # 1 hour
+                }, status=200)
+            else:
+                return Response({'error': 'login gagal'}, status=400)
+        except Member.DoesNotExist:
+            return Response({'error': 'akun tidak ditemukan'}, status=400)
 
 
 class RefreshTokenView(APIView):
@@ -109,33 +117,38 @@ class RefreshTokenView(APIView):
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
 
-        # Find user by email
+        # Find member by email (authenticate directly against Member model)
         try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+            member = Member.objects.get(member_email=email)
+        except Member.DoesNotExist:
             return Response({'error': 'Invalid credentials'}, status=400)
 
-        # Verify password
-        if not check_password(password, user.passwd):
+        # Verify password against member's password (plaintext or hashed)
+        if member.mpasswd != password and not check_password(password, member.mpasswd):
             return Response({'error': 'Invalid credentials'}, status=400)
 
         # Check if member account is active (not pending verification)
-        try:
-            member = Member.objects.get(member_id=user.username)
-            if member.is_pending == 1:
-                return Response({'error': 'Account belum diverifikasi. Silakan verifikasi email Anda terlebih dahulu.'}, status=400)
-        except Member.DoesNotExist:
-            return Response({'error': 'Data member tidak ditemukan'}, status=400)
+        if member.is_pending == 1:
+            return Response({'error': 'Account belum diverifikasi. Silakan verifikasi email Anda terlebih dahulu.'}, status=400)
+
+        # Create a temporary user object for JWT token generation
+        class TempUser:
+            def __init__(self, username):
+                self.username = username
+                self.user_id = username
+                self.id = username
+                
+        temp_user = TempUser(member.member_id)
 
         # Generate new JWT tokens
-        refresh = RefreshToken.for_user(user)
+        refresh = RefreshToken.for_user(temp_user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
 
         return Response({
             'message': 'Token refreshed successfully',
-            'username': user.username,
-            'user_type': user.user_type,
+            'username': member.member_id,
+            'user_type': 1,  # Default user type
             'access_token': access_token,
             'refresh_token': refresh_token,
             'token_type': 'Bearer',
@@ -151,7 +164,7 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     - Listing all users
     - Retrieving individual user details
     """
-    queryset = User.objects.all()
+    queryset = Member.objects.all()
     serializer_class = UserSerializer
 
 

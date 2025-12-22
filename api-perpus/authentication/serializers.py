@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from .models import User, UserGroup, GroupAccess, SystemLog
 from user.models import Member
+from .models import UserGroup, GroupAccess, SystemLog
 from django.contrib.auth.hashers import make_password
-
 
 
 
@@ -24,12 +23,13 @@ class RefreshTokenSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = Member
         fields = '__all__'
-        read_only_fields = ['user_id', 'input_date', 'last_update']
+        read_only_fields = ['input_date', 'last_update']
         extra_kwargs = {
-            'passwd': {'write_only': True}
+            'mpasswd': {'write_only': True}
         }
+
 
 class UserGroupSerializer(serializers.ModelSerializer):
     class Meta:
@@ -37,10 +37,12 @@ class UserGroupSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['group_id', 'input_date', 'last_update']
 
+
 class GroupAccessSerializer(serializers.ModelSerializer):
     class Meta:
         model = GroupAccess
         fields = '__all__'
+
 
 class SystemLogSerializer(serializers.ModelSerializer):
     class Meta:

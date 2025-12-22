@@ -146,11 +146,23 @@
                 return response.json();
             })
             .then(data => {
+                // Debug logging
+                console.log('=== Login Response Debug ===');
+                console.log('Full response data:', data);
+                console.log('Username from response:', data.username);
+                
                 // Store tokens in localStorage
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('refresh_token', data.refresh_token);
                 localStorage.setItem('username', data.username);
+                localStorage.setItem('member_id', data.username);  // member_id is the same as username in this case
                 localStorage.setItem('user_type', data.user_type);
+                
+                // Debug logging after storage
+                console.log('Stored in localStorage:');
+                console.log('access_token:', localStorage.getItem('access_token'));
+                console.log('username:', localStorage.getItem('username'));
+                console.log('member_id:', localStorage.getItem('member_id'));
                 
                 // Show success message
                 const successMessage = document.getElementById('success-message');

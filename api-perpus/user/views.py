@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from drf_spectacular.utils import extend_schema
 from .models import Member, MstMemberType, VisitorCount, Comment
 from .serializers import MemberSerializer, MstMemberTypeSerializer, VisitorCountSerializer, CommentSerializer
@@ -15,6 +16,8 @@ class MemberViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
+    permission_classes = [AllowAny]  # Public access for member information
+    authentication_classes = []  # No authentication required for public access
 
 
 # Constant member types data
@@ -89,6 +92,8 @@ class MstMemberTypeViewSet(viewsets.ReadOnlyModelViewSet):
     Note: Member types are now constants and cannot be modified through the API.
     """
     serializer_class = MstMemberTypeSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []  # No authentication required for public access
 
     def get_queryset(self):
         # Return constant data instead of database query
@@ -108,22 +113,6 @@ class MstMemberTypeViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data)
         return Response({'error': 'Member type not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    def create(self, request, *args, **kwargs):
-        """Member types are constants and cannot be created"""
-        return Response({'error': 'Member types are constants and cannot be modified'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def update(self, request, *args, **kwargs):
-        """Member types are constants and cannot be updated"""
-        return Response({'error': 'Member types are constants and cannot be modified'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def partial_update(self, request, *args, **kwargs):
-        """Member types are constants and cannot be partially updated"""
-        return Response({'error': 'Member types are constants and cannot be modified'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def destroy(self, request, *args, **kwargs):
-        """Member types are constants and cannot be deleted"""
-        return Response({'error': 'Member types are constants and cannot be modified'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
 
 class VisitorCountViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -135,6 +124,8 @@ class VisitorCountViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = VisitorCount.objects.all()
     serializer_class = VisitorCountSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []  # No authentication required for public access
 
 
 class CommentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -148,6 +139,8 @@ class CommentViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []  # No authentication required for public access
 
     @extend_schema(
         summary="Get bookmarked titles for a member",

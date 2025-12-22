@@ -2,11 +2,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Data Dashboard</title>
+    <title>Library Dashboard</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Library Data Dashboard</h1>
+    <h1>Library Dashboard</h1>
     
     <div class="container">
         <div style="text-align: right; margin-bottom: 20px;">
@@ -14,22 +14,61 @@
             <button id="logout-btn" style="display: none;" onclick="logout()">Logout</button>
         </div>
         
-        <h2>All Library Data</h2>
-        <div class="endpoint-card">
-            <button onclick="loadAllData()">Load All Data</button>
-            <div id="status-message" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: none;"></div>
-            <div id="data-display" style="margin-top: 20px;"></div>
+        <h2>Menu</h2>
+        <div class="menu-container">
+            <button class="menu-button" onclick="loadAccountInfo()">Akun Saya</button>
+            <button class="menu-button" onclick="loadLoanHistory()">Sejarah Peminjaman</button>
+            <button class="menu-button" onclick="loadCurrentLoans()">Peminjaman Saat Ini</button>
+            <button class="menu-button" onclick="loadAllBooks()">Lihat Semua Buku</button>
         </div>
+        
+        <div id="status-message" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: none;"></div>
+        <div id="data-display" style="margin-top: 20px;"></div>
     </div>
 
     <script>
         const baseUrl = 'http://localhost:8000';
         
+        // Utility function to parse JWT token
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                return JSON.parse(atob(base64));
+            } catch (error) {
+                console.error('Error parsing JWT token:', error);
+                return null;
+            }
+        }
+        
+        // Get member ID from JWT token
+        function getMemberIdFromToken() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return null;
+            
+            const decoded = parseJwt(token);
+            if (!decoded || !decoded.user_id) return null;
+            
+            return decoded.user_id;
+        }
+        
         // Check authentication on page load
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== Page Load Debug ===');
+            console.log('All localStorage items:');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                console.log(key + ':', localStorage.getItem(key));
+            }
+            
+            // Get member ID from JWT token
+            const memberId = getMemberIdFromToken();
+            console.log('Member ID from JWT:', memberId);
+            
             const token = localStorage.getItem('access_token');
             if (!token) {
                 // Redirect to login page if not authenticated
+                console.log('No token found, redirecting to login');
                 window.location.href = 'login.html';
                 return;
             }
@@ -45,6 +84,7 @@
             localStorage.removeItem('access_token');
             localStorage.removeItem('refresh_token');
             localStorage.removeItem('username');
+            localStorage.removeItem('user_id');
             localStorage.removeItem('user_type');
             window.location.href = 'login.html';
         }
@@ -59,113 +99,367 @@
             statusDiv.style.color = isError ? '#c62828' : '#2e7d32';
         }
 
-        // Function to load all data
-        function loadAllData() {
+        // Function to show/hide sections
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show the requested section
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.style.display = 'block';
+            }
+            
+            // Clear previous results when switching sections
+            document.getElementById('account-result').innerHTML = '';
+            document.getElementById('loan-history-result').innerHTML = '';
+            document.getElementById('current-loans-result').innerHTML = '';
+            document.getElementById('books-result').innerHTML = '';
+            document.getElementById('book-detail').innerHTML = '';
+        }
+        
+        // Event listeners for navigation buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('account-btn').addEventListener('click', function() {
+                showSection('account-section');
+                loadAccountInfo();
+            });
+            document.getElementById('loan-history-btn').addEventListener('click', function() {
+                showSection('loan-history-section');
+                loadLoanHistory();
+            });
+            document.getElementById('current-loans-btn').addEventListener('click', function() {
+                showSection('current-loans-section');
+                loadCurrentLoans();
+            });
+            document.getElementById('all-books-btn').addEventListener('click', function() {
+                showSection('all-books-section');
+                loadAllBooks();
+            });
+        });
+        
+        // Clean up any old localStorage items that are no longer needed
+        function cleanupOldLocalStorage() {
+            localStorage.removeItem('user_id'); // Not needed anymore since we get it from JWT
+        }
+        
+        // Call cleanup when page loads
+        cleanupOldLocalStorage();
+
+        // Load account information
+        function loadAccountInfo() {
+            console.log('=== Load Account Info Debug ===');
+            
             const token = localStorage.getItem('access_token');
-            if (!token) {
-                window.location.href = 'login.html';
+            console.log('Token:', token);
+            
+            // Get member ID from JWT token instead of localStorage
+            const memberId = getMemberIdFromToken();
+            console.log('Member ID from JWT:', memberId);
+            
+            if (!memberId) {
+                console.log('No member_id found in JWT token');
+                document.getElementById('account-result').innerHTML = '<p>Error: Unable to retrieve member information. Please try logging in again.</p>';
                 return;
             }
             
-            showStatus('Loading all library data...');
+            console.log('Using member ID from JWT for account info request');
             
-            // Headers with authentication
-            const headers = {
-                'Authorization': `Bearer ${token}`
-            };
-            
-            // Load data from all available endpoints
-            Promise.all([
-                fetch(`${baseUrl}/api/biblio/?include_related=true`, { headers }),
-                fetch(`${baseUrl}/api/loan-history/`, { headers }),
-                fetch(`${baseUrl}/user/members/`, { headers }),
-                fetch(`${baseUrl}/user/member-types/`, { headers }),
-                fetch(`${baseUrl}/user/visitors/`, { headers }),
-                fetch(`${baseUrl}/user/comments/`, { headers }),
-                fetch(`${baseUrl}/auth/users/`, { headers }),
-                fetch(`${baseUrl}/auth/user-groups/`, { headers }),
-                fetch(`${baseUrl}/auth/group-access/`, { headers })
-            ])
-            .then(responses => Promise.all(responses.map(res => {
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        // Token expired or invalid, redirect to login
-                        localStorage.removeItem('access_token');
-                        localStorage.removeItem('refresh_token');
-                        window.location.href = 'login.html';
-                        throw new Error('Authentication required');
-                    }
-                    throw new Error(`HTTP error! status: ${res.status}`);
+            fetch(`${baseUrl}/user/members/${memberId}/`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
-                return res.json();
-            })))
-            .then(([books, loanHistory, members, memberTypes, visitors, comments, users, userGroups, groupAccess]) => {
-                showStatus('All data loaded successfully!', false);
-                displayAllData({ books, loanHistory, members, memberTypes, visitors, comments, users, userGroups, groupAccess });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Account data received:', data);
+                document.getElementById('data-display').innerHTML = `
+                    <div class="result-card">
+                        <h3>Account Information</h3>
+                        <table class="result-table">
+                            <tr><td><strong>Member ID:</strong></td><td>${data.member_id || 'N/A'}</td></tr>
+                            <tr><td><strong>Name:</strong></td><td>${data.member_name || 'N/A'}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${data.member_email || 'N/A'}</td></tr>
+                            <tr><td><strong>Phone:</strong></td><td>${data.member_phone || 'N/A'}</td></tr>
+                            <tr><td><strong>Address:</strong></td><td>${data.member_address || 'N/A'}</td></tr>
+                            <tr><td><strong>Member Since:</strong></td><td>${data.member_since_date || 'N/A'}</td></tr>
+                            <tr><td><strong>Registration Date:</strong></td><td>${data.register_date || 'N/A'}</td></tr>
+                            <tr><td><strong>Expiration Date:</strong></td><td>${data.expire_date || 'N/A'}</td></tr>
+                        </table>
+                    </div>
+                `;
             })
             .catch(error => {
-                if (error.message !== 'Authentication required') {
-                    console.error('Fetch error:', error);
-                    showStatus(`Error loading data: ${error.message}`, true);
-                    document.getElementById('data-display').innerHTML = `<p>Error loading data: ${error.message}</p>`;
-                }
+                console.error('Error loading account info:', error);
+                document.getElementById('account-result').innerHTML = `<p>Error loading account information: ${error.message}</p>`;
             });
         }
 
-        // Function to display all data
-        function displayAllData(data) {
+        // Load loan history
+        function loadLoanHistory() {
+            console.log('=== Load Loan History Debug ===');
+            
+            const token = localStorage.getItem('access_token');
+            console.log('Token:', token);
+            
+            // Get member ID from JWT token instead of localStorage
+            const memberId = getMemberIdFromToken();
+            console.log('Member ID from JWT:', memberId);
+            
+            if (!memberId) {
+                console.log('No member_id found in JWT token');
+                document.getElementById('loan-history-result').innerHTML = '<p>Error: Unable to retrieve loan history. Please try logging in again.</p>';
+                return;
+            }
+            
+            console.log('Using member ID from JWT for loan history request');
+            
+            // Fetch loan history data - using the new direct endpoint
+            const url = `${baseUrl}/api/loan-history/member/${memberId}/`;
+            console.log('Fetching loan history from:', url);
+            
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Loan history API Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Loan history data received:', data);
+                if (data && data.length > 0) {
+                    // Create HTML table for loan history
+                    let tableHtml = `
+                        <div class="result-card">
+                            <h3>Loan History</h3>
+                            <table class="result-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item Code</th>
+                                        <th>Title</th>
+                                        <th>Loan Date</th>
+                                        <th>Due Date</th>
+                                        <th>Return Date</th>
+                                        <th>Fines</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    data.forEach(item => {
+                        tableHtml += `
+                            <tr>
+                                <td>${item.item.item_code || 'N/A'}</td>
+                                <td>${item.biblio.title || 'N/A'}</td>
+                                <td>${item.loan_date || 'N/A'}</td>
+                                <td>${item.due_date || 'N/A'}</td>
+                                <td>${item.return_date || 'Not returned'}</td>
+                                <td>${item.fines || '0'}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    document.getElementById('loan-history-result').innerHTML = tableHtml;
+                } else {
+                    document.getElementById('loan-history-result').innerHTML = '<p>No loan history found.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading loan history:', error);
+                document.getElementById('loan-history-result').innerHTML = `<p>Error loading loan history: ${error.message}</p>`;
+            });
+        }
+
+        // Load current loans
+        function loadCurrentLoans() {
+            console.log('=== Load Current Loans Debug ===');
+            
+            const token = localStorage.getItem('access_token');
+            console.log('Token:', token);
+            
+            // Get member ID from JWT token instead of localStorage
+            const memberId = getMemberIdFromToken();
+            console.log('Member ID from JWT:', memberId);
+            
+            if (!memberId) {
+                console.log('No member_id found in JWT token');
+                document.getElementById('current-loans-result').innerHTML = '<p>Error: Unable to retrieve current loans. Please try logging in again.</p>';
+                return;
+            }
+            
+            console.log('Using member ID from JWT for current loans request');
+            
+            // Fetch current loans data - using the new direct endpoint
+            const url = `${baseUrl}/api/loan-history/member/${memberId}/`; // We'll filter for non-returned items
+            console.log('Fetching current loans from:', url);
+            
+            fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Current loans API Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Current loans data received:', data);
+                // Filter for loans that haven't been returned yet (no return_date)
+                const currentLoans = data.filter(loan => !loan.return_date);
+                
+                if (currentLoans && currentLoans.length > 0) {
+                    // Create HTML table for current loans
+                    let tableHtml = `
+                        <div class="result-card">
+                            <h3>Current Loans</h3>
+                            <table class="result-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item Code</th>
+                                        <th>Title</th>
+                                        <th>Loan Date</th>
+                                        <th>Due Date</th>
+                                        <th>Days Until Due</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    currentLoans.forEach(item => {
+                        // Calculate days until due
+                        const dueDate = new Date(item.due_date);
+                        const today = new Date();
+                        const timeDiff = dueDate.getTime() - today.getTime();
+                        const daysUntilDue = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                        
+                        tableHtml += `
+                            <tr>
+                                <td>${item.item.item_code || 'N/A'}</td>
+                                <td>${item.biblio.title || 'N/A'}</td>
+                                <td>${item.loan_date || 'N/A'}</td>
+                                <td>${item.due_date || 'N/A'}</td>
+                                <td>${daysUntilDue} days</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tableHtml += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    document.getElementById('current-loans-result').innerHTML = tableHtml;
+                } else {
+                    document.getElementById('current-loans-result').innerHTML = '<p>No current loans found.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading current loans:', error);
+                document.getElementById('current-loans-result').innerHTML = `<p>Error loading current loans: ${error.message}</p>`;
+            });
+        }
+
+        // Function to load all books
+        function loadAllBooks() {
+            try {
+                const token = localStorage.getItem('access_token');
+                
+                console.log('=== Load All Books Debug ===');
+                console.log('Token:', token);
+                
+                if (!token) {
+                    console.log('No token found, redirecting to login');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                showStatus('Loading all books...');
+                
+                // Headers with authentication
+                const headers = {
+                    'Authorization': `Bearer ${token}`
+                };
+                
+                // Fetch all books
+                const url = `${baseUrl}/api/biblio/`;
+                console.log('Fetching all books from:', url);
+                console.log('Headers:', headers);
+                
+                fetch(url, { headers })
+                    .then(response => {
+                        console.log('Books API Response status:', response.status);
+                        if (!response.ok) {
+                            if (response.status === 401) {
+                                console.log('Unauthorized, clearing tokens and redirecting to login');
+                                localStorage.removeItem('access_token');
+                                localStorage.removeItem('refresh_token');
+                                localStorage.removeItem('username');
+                                localStorage.removeItem('user_id');
+                                window.location.href = 'login.html';
+                                throw new Error('Authentication required');
+                            }
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(books => {
+                        console.log('Books data received:', books);
+                        showStatus('Books loaded successfully!', false);
+                        displayBooks(books);
+                    })
+                    .catch(error => {
+                        console.error('Fetch error in loadAllBooks:', error);
+                        if (error.message !== 'Authentication required') {
+                            showStatus(`Error loading books: ${error.message}`, true);
+                            document.getElementById('data-display').innerHTML = `<p>Error loading books: ${error.message}</p>`;
+                        }
+                    });
+            } catch (error) {
+                console.error('Error in loadAllBooks:', error);
+                showStatus(`Script error: ${error.message}`, true);
+            }
+        }
+
+        // Function to display account information
+        function displayAccountInfo(member) {
             const container = document.getElementById('data-display');
             
             let html = `
-                <div class="combined-card">
-                    <h2>📚 Library Dashboard</h2>
-                    
-                    <!-- Books Section -->
-                    <div class="data-section">
-                        <h3>📚 Books (${getCount(data.books)})</h3>
-                        ${displayBooks(data.books)}
-                    </div>
-                    
-                    <!-- Loan History Section -->
-                    <div class="data-section">
-                        <h3>🔁 Loan History (${getCount(data.loanHistory)})</h3>
-                        ${displayLoanHistory(data.loanHistory)}
-                    </div>
-                    
-                    <!-- Members Section -->
-                    <div class="data-section">
-                        <h3>👥 Members (${getCount(data.members)})</h3>
-                        ${displayMembers(data.members)}
-                    </div>
-                    
-                    <!-- Member Types Section -->
-                    <div class="data-section">
-                        <h3>🏷️ Member Types (${getCount(data.memberTypes)})</h3>
-                        ${displayMemberTypes(data.memberTypes)}
-                    </div>
-                    
-                    <!-- Visitors Section -->
-                    <div class="data-section">
-                        <h3>🚶 Visitors (${getCount(data.visitors)})</h3>
-                        ${displayVisitors(data.visitors)}
-                    </div>
-                    
-                    <!-- Comments Section -->
-                    <div class="data-section">
-                        <h3>💬 Comments (${getCount(data.comments)})</h3>
-                        ${displayComments(data.comments)}
-                    </div>
-                    
-                    <!-- Users Section -->
-                    <div class="data-section">
-                        <h3>👤 Users (${getCount(data.users)})</h3>
-                        ${displayUsers(data.users)}
-                    </div>
-                    
-                    <!-- User Groups Section -->
-                    <div class="data-section">
-                        <h3>👥 User Groups (${getCount(data.userGroups)})</h3>
-                        ${displayUserGroups(data.userGroups)}
+                <div class="account-card">
+                    <h2>👤 Akun Saya</h2>
+                    <div class="account-details">
+                        <p><strong>Nama:</strong> ${member.member_name || 'N/A'}</p>
+                        <p><strong>NIK:</strong> ${member.user_id || 'N/A'}</p>
+                        <p><strong>Email:</strong> ${member.member_email || 'N/A'}</p>
+                        <p><strong>Alamat:</strong> ${member.member_address || 'N/A'}</p>
+                        <p><strong>Institusi:</strong> ${member.inst_name || 'N/A'}</p>
+                        <p><strong>Tanggal Registrasi:</strong> ${member.register_date || 'N/A'}</p>
+                        <p><strong>Tanggal Kadaluarsa:</strong> ${member.expire_date || 'N/A'}</p>
                     </div>
                 </div>
             `;
@@ -173,95 +467,10 @@
             container.innerHTML = html;
         }
 
-        // Helper function to get count from data
-        function getCount(data) {
-            if (Array.isArray(data)) {
-                return data.length;
-            } else if (data.results && Array.isArray(data.results)) {
-                return data.results.length;
-            } else if (typeof data === 'object' && data !== null) {
-                return Object.keys(data).length;
-            }
-            return 0;
-        }
-
-        // Function to display books
-        function displayBooks(books) {
-            // Handle both array and paginated responses
-            let booksData = [];
-            if (Array.isArray(books)) {
-                booksData = books;
-            } else if (books.results && Array.isArray(books.results)) {
-                booksData = books.results;
-            } else {
-                booksData = [books]; // Single book object
-            }
-            
-            if (booksData.length === 0) {
-                return '<p>No books found.</p>';
-            }
-            
-            let html = `<div class="book-grid">`;
-            
-            booksData.forEach(book => {
-                // Extract author information if available
-                let authorDetails = '';
-                if (book.authors && Array.isArray(book.authors) && book.authors.length > 0) {
-                    authorDetails = '<p><strong>Authors:</strong></p><ul>';
-                    book.authors.forEach(author => {
-                        authorDetails += `<li>${author.author_name || 'Unknown Author'}</li>`;
-                    });
-                    authorDetails += '</ul>';
-                } else {
-                    authorDetails = '<p><strong>Authors:</strong> N/A</p>';
-                }
-                
-                // Extract publisher information if available
-                let publisherInfo = '';
-                if (book.publisher) {
-                    publisherInfo = `<p><strong>Publisher:</strong> ${book.publisher.publisher_name || 'N/A'}</p>`;
-                }
-                
-                // Extract language information if available
-                let languageInfo = '';
-                if (book.language) {
-                    languageInfo = `<p><strong>Language:</strong> ${book.language.language_name || 'N/A'}</p>`;
-                }
-                
-                // Extract GMD information if available
-                let gmdInfo = '';
-                if (book.gmd) {
-                    gmdInfo = `<p><strong>GMD:</strong> ${book.gmd.gmd_name || 'N/A'}</p>`;
-                }
-                
-                html += `  
-                    <div class="book-card">
-                        <div class="book-header">
-                            <h4>${book.title || 'Untitled Book'}</h4>
-                        </div>
-                        <div class="book-details">
-                            ${book.image ? `<p><strong></strong><br><img src="/cover/${book.image}" alt="${book.title}" style="max-width: 200px; height: auto; margin-top: 10px;" onerror="this.onerror=null;this.src='/cover/${book.image}';"></p>` : ''}
-                            <p><strong>Book ID:</strong> ${book.biblio_id || 'N/A'}</p>
-                            <p><strong>Edition:</strong> ${book.edition || 'N/A'}</p>
-                            <p><strong>ISBN:</strong> ${book.isbn_issn || 'N/A'}</p>
-                            <p><strong>Publish Year:</strong> ${book.publish_year || 'N/A'}</p>
-                            <p><strong>Classification:</strong> ${book.classification || 'N/A'}</p>
-                            ${authorDetails}
-                            ${publisherInfo}
-                            ${languageInfo}
-                            ${gmdInfo}
-                            ${book.notes ? `<p><strong>Notes:</strong> ${book.notes}</p>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `</div>`;
-            return html;
-        }
-
         // Function to display loan history
         function displayLoanHistory(loanHistory) {
+            const container = document.getElementById('data-display');
+            
             let loanData = [];
             if (Array.isArray(loanHistory)) {
                 loanData = loanHistory;
@@ -272,206 +481,111 @@
             }
             
             if (loanData.length === 0) {
-                return '<p>No loan history found.</p>';
+                container.innerHTML = '<p>Tidak ada riwayat peminjaman.</p>';
+                return;
             }
             
-            let html = `<div class="loan-grid">`;
+            let html = `
+                <div class="loan-history-card">
+                    <h2>🔁 Sejarah Peminjaman</h2>
+                    <div class="loan-history-grid">
+            `;
+            
             loanData.forEach(loan => {
                 html += `
-                    <div class="loan-card">
-                        <p><strong>Item Code:</strong> ${loan.item_code || 'N/A'}</p>
-                        <p><strong>Member ID:</strong> ${loan.member_id || 'N/A'}</p>
-                        <p><strong>Loan Date:</strong> ${loan.loan_date || 'N/A'}</p>
-                        <p><strong>Due Date:</strong> ${loan.due_date || 'N/A'}</p>
-                        <p><strong>Status:</strong> ${loan.return_date ? 'Returned' : 'Loaned'}</p>
+                    <div class="loan-history-item">
+                        <p><strong>Kode Item:</strong> ${loan.item_code || 'N/A'}</p>
+                        <p><strong>Tanggal Pinjam:</strong> ${loan.loan_date || 'N/A'}</p>
+                        <p><strong>Tanggal Jatuh Tempo:</strong> ${loan.due_date || 'N/A'}</p>
+                        <p><strong>Tanggal Kembali:</strong> ${loan.return_date || 'Belum dikembalikan'}</p>
+                        <p><strong>Status:</strong> ${loan.return_date ? 'Dikembalikan' : 'Masih dipinjam'}</p>
                     </div>
                 `;
             });
-            html += `</div>`;
-            return html;
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
         }
 
-        // Function to display members
-        function displayMembers(members) {
-            let membersData = [];
-            if (Array.isArray(members)) {
-                membersData = members;
-            } else if (members.results && Array.isArray(members.results)) {
-                membersData = members.results;
-            } else {
-                membersData = [members];
+        // Function to display current loans
+        function displayCurrentLoans(loans) {
+            const container = document.getElementById('data-display');
+            
+            if (loans.length === 0) {
+                container.innerHTML = '<p>Tidak ada peminjaman saat ini.</p>';
+                return;
             }
             
-            if (membersData.length === 0) {
-                return '<p>No members found.</p>';
-            }
+            let html = `
+                <div class="current-loans-card">
+                    <h2>📚 Peminjaman Saat Ini</h2>
+                    <div class="current-loans-grid">
+            `;
             
-            let html = `<div class="members-grid">`;
-            membersData.forEach(member => {
+            loans.forEach(loan => {
                 html += `
-                    <div class="member-card">
-                        <h4>${member.member_name || 'Unnamed Member'}</h4>
-                        <p><strong>Member ID:</strong> ${member.member_id || 'N/A'}</p>
-                        <p><strong>Email:</strong> ${member.member_email || 'N/A'}</p>
-                        <p><strong>Institution:</strong> ${member.inst_name || 'N/A'}</p>
-                        <p><strong>Register Date:</strong> ${member.register_date || 'N/A'}</p>
+                    <div class="current-loan-item">
+                        <p><strong>Kode Item:</strong> ${loan.item_code || 'N/A'}</p>
+                        <p><strong>Tanggal Pinjam:</strong> ${loan.loan_date || 'N/A'}</p>
+                        <p><strong>Tanggal Jatuh Tempo:</strong> ${loan.due_date || 'N/A'}</p>
                     </div>
                 `;
             });
-            html += `</div>`;
-            return html;
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
         }
 
-        // Function to display member types
-        function displayMemberTypes(memberTypes) {
-            let typesData = [];
-            if (Array.isArray(memberTypes)) {
-                typesData = memberTypes;
-            } else if (memberTypes.results && Array.isArray(memberTypes.results)) {
-                typesData = memberTypes.results;
+        // Function to display all books
+        function displayBooks(books) {
+            const container = document.getElementById('data-display');
+            
+            let booksData = [];
+            if (Array.isArray(books)) {
+                booksData = books;
+            } else if (books.results && Array.isArray(books.results)) {
+                booksData = books.results;
             } else {
-                typesData = [memberTypes];
+                booksData = [books];
             }
             
-            if (typesData.length === 0) {
-                return '<p>No member types found.</p>';
+            if (booksData.length === 0) {
+                container.innerHTML = '<p>Tidak ada buku tersedia.</p>';
+                return;
             }
             
-            let html = `<div class="member-types-grid">`;
-            typesData.forEach(type => {
+            let html = `
+                <div class="all-books-card">
+                    <h2>📖 Semua Buku (${booksData.length})</h2>
+                    <div class="books-grid">
+            `;
+            
+            booksData.forEach(book => {
                 html += `
-                    <div class="member-type-card">
-                        <h4>${type.member_type_name || 'Unnamed Type'}</h4>
-                        <p><strong>Loan Limit:</strong> ${type.loan_limit || 'N/A'}</p>
-                        <p><strong>Loan Period:</strong> ${type.loan_periode || 'N/A'} days</p>
-                        <p><strong>Fine Per Day:</strong> ${type.fine_each_day || 'N/A'}</p>
+                    <div class="book-item">
+                        <h3>${book.title || 'Untitled Book'}</h3>
+                        <p><strong>ISBN:</strong> ${book.isbn_issn || 'N/A'}</p>
+                        <p><strong>Tahun Terbit:</strong> ${book.publish_year || 'N/A'}</p>
+                        <p><strong>Edisi:</strong> ${book.edition || 'N/A'}</p>
                     </div>
                 `;
             });
-            html += `</div>`;
-            return html;
-        }
-
-        // Function to display visitors
-        function displayVisitors(visitors) {
-            let visitorsData = [];
-            if (Array.isArray(visitors)) {
-                visitorsData = visitors;
-            } else if (visitors.results && Array.isArray(visitors.results)) {
-                visitorsData = visitors.results;
-            } else {
-                visitorsData = [visitors];
-            }
             
-            if (visitorsData.length === 0) {
-                return '<p>No visitors found.</p>';
-            }
-            
-            let html = `<div class="visitors-grid">`;
-            visitorsData.forEach(visitor => {
-                html += `
-                    <div class="visitor-card">
-                        <h4>${visitor.member_name || 'Anonymous Visitor'}</h4>
-                        <p><strong>Institution:</strong> ${visitor.institution || 'N/A'}</p>
-                        <p><strong>Check-in Date:</strong> ${visitor.checkin_date || 'N/A'}</p>
+            html += `
                     </div>
-                `;
-            });
-            html += `</div>`;
-            return html;
+                </div>
+            `;
+            
+            container.innerHTML = html;
         }
-
-        // Function to display comments
-        function displayComments(comments) {
-            let commentsData = [];
-            if (Array.isArray(comments)) {
-                commentsData = comments;
-            } else if (comments.results && Array.isArray(comments.results)) {
-                commentsData = comments.results;
-            } else {
-                commentsData = [comments];
-            }
-            
-            if (commentsData.length === 0) {
-                return '<p>No comments found.</p>';
-            }
-            
-            let html = `<div class="comments-grid">`;
-            commentsData.forEach(comment => {
-                html += `
-                    <div class="comment-card">
-                        <p><strong>Comment:</strong> ${comment.comment || 'No comment'}</p>
-                        <p><strong>Member ID:</strong> ${comment.member_id || 'N/A'}</p>
-                        <p><strong>Date:</strong> ${comment.input_date || 'N/A'}</p>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            return html;
-        }
-
-        // Function to display users
-        function displayUsers(users) {
-            let usersData = [];
-            if (Array.isArray(users)) {
-                usersData = users;
-            } else if (users.results && Array.isArray(users.results)) {
-                usersData = users.results;
-            } else {
-                usersData = [users];
-            }
-            
-            if (usersData.length === 0) {
-                return '<p>No users found.</p>';
-            }
-            
-            let html = `<div class="users-grid">`;
-            usersData.forEach(user => {
-                html += `
-                    <div class="user-card">
-                        <h4>${user.realname || 'Unnamed User'}</h4>
-                        <p><strong>Username:</strong> ${user.username || 'N/A'}</p>
-                        <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
-                        <p><strong>User Type:</strong> ${user.user_type || 'N/A'}</p>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            return html;
-        }
-
-        // Function to display user groups
-        function displayUserGroups(userGroups) {
-            let groupsData = [];
-            if (Array.isArray(userGroups)) {
-                groupsData = userGroups;
-            } else if (userGroups.results && Array.isArray(userGroups.results)) {
-                groupsData = userGroups.results;
-            } else {
-                groupsData = [userGroups];
-            }
-            
-            if (groupsData.length === 0) {
-                return '<p>No user groups found.</p>';
-            }
-            
-            let html = `<div class="user-groups-grid">`;
-            groupsData.forEach(group => {
-                html += `
-                    <div class="user-group-card">
-                        <h4>${group.group_name || 'Unnamed Group'}</h4>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            return html;
-        }
-
-        // Load all data when page loads
-        window.onload = function() {
-            // Authentication check is handled in DOMContentLoaded event
-            // Load data after authentication is confirmed
-        };
     </script>
 </body>
 </html>

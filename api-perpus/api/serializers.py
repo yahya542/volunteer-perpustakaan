@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Biblio, LoanHistory, MstPublisher, MstAuthor
+    Biblio, LoanHistory, MstPublisher, MstAuthor, Loan, Item
 )
 
 class BiblioSerializer(serializers.ModelSerializer):
@@ -14,6 +14,50 @@ class LoanHistorySerializer(serializers.ModelSerializer):
         model = LoanHistory
         fields = '__all__'
         read_only_fields = ['loan_id']
+
+class LoanSerializer(serializers.ModelSerializer):
+    biblio = serializers.SerializerMethodField()
+    item = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Loan
+        fields = '__all__'
+        read_only_fields = ['loan_id']
+    
+    def get_biblio(self, obj):
+        # Import here to avoid circular imports
+        from .models import Biblio, Item
+        # Get bibliographic information for this loan
+        if obj.item_code:
+            try:
+                item = Item.objects.get(item_code=obj.item_code)
+                if item.biblio_id:
+                    biblio = Biblio.objects.get(biblio_id=item.biblio_id)
+                    return {
+                        'biblio_id': biblio.biblio_id,
+                        'title': biblio.title,
+                        'isbn_issn': biblio.isbn_issn,
+                        'call_number': biblio.call_number
+                    }
+            except (Item.DoesNotExist, Biblio.DoesNotExist):
+                return None
+        return None
+    
+    def get_item(self, obj):
+        # Import here to avoid circular imports
+        from .models import Item
+        # Get item information for this loan
+        if obj.item_code:
+            try:
+                item = Item.objects.get(item_code=obj.item_code)
+                return {
+                    'item_id': item.item_id,
+                    'item_code': item.item_code,
+                    'call_number': item.call_number
+                }
+            except Item.DoesNotExist:
+                return None
+        return None
 
 class PublisherSerializer(serializers.ModelSerializer):
     class Meta:

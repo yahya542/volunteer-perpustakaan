@@ -1,6 +1,6 @@
 Django>=3.2,<4.0
 djangorestframework>=3.12,<4.0
-
+corsheaders>=3.7,<4.0
 drf-spectacular
 uritemplate
 djangorestframework-simplejwt
