@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ImageBackground, StyleSheet, Text, View } from "react-native";
+import tanjung from "../../assets/images/tanjung.png";
 import ComponentSejarahPeminjaman from "../../components/sejarah-peminjaman/ComponentSejarahPeminjaman";
 
 const PinjamanTerkini = () => {
@@ -6,12 +7,18 @@ const PinjamanTerkini = () => {
     <View style={style.containerContent}>
       <View style={{ justifyContent: "flex-start", width: "100%" }}>
         <View style={style.titleContainer}>
-          <Text style={style.title}>Sejarah</Text>
-          <Text style={style.title}>Peminjaman</Text>
+          <ImageBackground
+            source={tanjung}
+            style={style.bg}
+            imageStyle={style.bgImage}
+          >
+            <Text style={style.title}>History</Text>
+          </ImageBackground>
         </View>
       </View>
+
       {/* Bawah */}
-      <ComponentSejarahPeminjaman/>
+      <ComponentSejarahPeminjaman />
     </View>
   );
 };
@@ -22,22 +29,40 @@ const style = StyleSheet.create({
   containerContent: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#f0f0f0f0",
+    backgroundColor: "#fffffff0",
   },
+
   titleContainer: {
     backgroundColor: "#5D7BF4",
     width: "100%",
     borderBottomRightRadius: 100,
-    justifyContent: "flex-end",
     elevation: 10,
-    height: 230,
+    height: 180,
+    overflow: "hidden",
+  },
+
+  bg: {
+    flex: 1,
     paddingBottom: 20,
     paddingLeft: 20,
     paddingRight: 50,
-    position: "relative",
+    justifyContent: "flex-end",
   },
+
+  bgImage: {
+    resizeMode: "cover",
+    width: "460",
+    height: "280",
+    position: "absolute",
+    top: -60,
+    left: 170,
+    color: "#ffffff",
+    justifyContent: "center",
+    alignItems: "flex-start",
+  },
+
   title: {
-    color: "#344175",
+    color: "#ffffffff",
     fontSize: 30,
     fontWeight: "bold",
   },

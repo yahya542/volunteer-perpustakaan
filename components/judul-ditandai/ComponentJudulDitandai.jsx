@@ -1,8 +1,18 @@
-import { StyleSheet, Text, View, FlatList, Image } from "react-native";
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Delete from "../../assets/icons/Delete.png";
 
 const ComponentJudulDitandai = () => {
   const [bookmarks, setBookmarks] = useState([]);
+  const [isDeleteMode, setIsDeleteMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   useEffect(() => {
     fetchBookmarks();
@@ -10,33 +20,83 @@ const ComponentJudulDitandai = () => {
 
   const fetchBookmarks = async () => {
     try {
-      const response = await fetch('https://8c391e4349a3.ngrok-free.app/api/bookmarks/');
+      const response = await fetch(
+        "https://9dec003548aa.ngrok-free.app/api/bookmarks/"
+      );
       const data = await response.json();
       setBookmarks(data);
     } catch (error) {
-      console.error('Error fetching bookmarks:', error);
+      console.error("Error fetching bookmarks:", error);
       setBookmarks([]);
     }
   };
 
-  const renderBookmark = ({ item }) => (
-    <View style={styles.bookmarkItem}>
-      <Image source={{ uri: item.cover }} style={styles.cover} />
-      <View style={styles.info}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.author}>by {item.author}</Text>
-      </View>
-    </View>
-  );
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+const handleDeleteSelected = async () => {
+  try {
+    for (const id of selectedIds) {
+      await fetch(`https://9dec003548aa.ngrok-free.app/api/bookmarks/${id}`, {
+        method: "DELETE",
+      });
+    }
+
+    fetchBookmarks();
+
+    setSelectedIds([]);
+    setIsDeleteMode(false);
+  } catch (error) {
+    console.error("Error deleting bookmarks:", error);
+  }
+};
+
+
+  const renderBookmark = ({ item }) => {
+    const isSelected = selectedIds.includes(item.id);
+
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          if (isDeleteMode) toggleSelect(item.id);
+        }}
+        style={[
+          styles.bookmarkItem,
+          isDeleteMode && isSelected ? styles.selectedItem : {},
+        ]}
+      >
+        <Image source={{ uri: item.cover }} style={styles.cover} />
+        <View style={styles.info}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.author}>by {item.author}</Text>
+        </View>
+        {isDeleteMode && (
+          <Text style={[styles.checkmark, { color: isSelected ? "red" : "#ccc" }]}>
+            ✔
+          </Text>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleContainer}>
-        <Text style={styles.titleText}>Judul Tertandai Milik Saya</Text>
+      <View style={{ alignItems: "center", width: "100%" }}>
+        <View style={styles.countContainer}>
+          <View style={styles.countBadge}>
+            <Text style={styles.countText}>
+              {bookmarks.length} daftar judul saat ini
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => setIsDeleteMode(!isDeleteMode)}>
+            <Image source={Delete} style={{ marginLeft: 10 }} />
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.countContainer}>
-        <Text>{bookmarks.length} daftar judul saat ini</Text>
-      </View>
+
       {bookmarks.length === 0 ? (
         <View style={styles.noData}>
           <Text>Tidak ada data</Text>
@@ -50,6 +110,12 @@ const ComponentJudulDitandai = () => {
           showsVerticalScrollIndicator={true}
         />
       )}
+
+      {isDeleteMode && selectedIds.length > 0 && (
+        <TouchableOpacity style={styles.confirmButton} onPress={handleDeleteSelected}>
+          <Text style={styles.confirmText}>✔ Hapus {selectedIds.length} Buku</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -59,24 +125,27 @@ export default ComponentJudulDitandai;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: '100%',
-  },
-  titleContainer: {
-    marginTop: 20,
-    alignItems: "flex-start",
     width: "100%",
-    paddingLeft: 20,
-  },
-  titleText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#344175",
   },
   countContainer: {
     marginTop: 20,
-    alignItems: "flex-start",
+    alignItems: "center",
     width: "100%",
-    paddingLeft: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  countBadge: {
+    backgroundColor: "#664BD1",
+    height: 25,
+    width: 208,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 30,
+  },
+  countText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
   },
   noData: {
     marginTop: 20,
@@ -88,12 +157,16 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   bookmarkItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: "#fff",
     padding: 10,
     borderRadius: 10,
     marginBottom: 10,
-    alignItems: 'center',
+    alignItems: "center",
+  },
+  selectedItem: {
+    borderColor: "red",
+    borderWidth: 2,
   },
   cover: {
     width: 80,
@@ -106,11 +179,26 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   author: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
+  },
+  checkmark: {
+    fontSize: 24,
+    marginLeft: 10,
+  },
+  confirmButton: {
+    backgroundColor: "green",
+    padding: 10,
+    borderRadius: 30,
+    alignItems: "center",
+    margin: 20,
+  },
+  confirmText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });

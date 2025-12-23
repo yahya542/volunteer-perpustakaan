@@ -4,7 +4,7 @@
     "slug": "perpuskab",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/undraw.png",
+    "icon": "./assets/images/2.png",
     "scheme": "perpuskab",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/undraw.png",
+        "foregroundImage": "./assets/images/1.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
@@ -21,7 +21,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/2.png"
     },
     "plugins": [
       "expo-router",

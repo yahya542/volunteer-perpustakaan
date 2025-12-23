@@ -32,7 +32,7 @@ const ComponentSejarahPeminjaman = () => {
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>Sejarah Peminjaman Milik Saya</Text>
+        <Text style={styles.title}>Sejarah Peminjaman</Text>
       </View>
       <View style={styles.countContainer}>
         <Text>{history.length} buku ditemukan</Text>
