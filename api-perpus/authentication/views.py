@@ -4,11 +4,13 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.tokens import RefreshToken
 from user.models import Member
-from .models import UserGroup, GroupAccess, SystemLog
+from .models import UserGroup, GroupAccess, SystemLog, User
 from .serializers import (
     LoginSerializer, RefreshTokenSerializer, UserSerializer, UserGroupSerializer, GroupAccessSerializer, SystemLogSerializer
 )
 from django.contrib.auth.hashers import check_password
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 
 
@@ -202,3 +204,19 @@ class SystemLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = SystemLog.objects.all()
     serializer_class = SystemLogSerializer
+
+class MemberJWTAuthentication(JWTAuthentication):
+    """
+    Custom JWT authentication that maps JWT user_id to Member.member_id
+    """
+
+    def get_user(self, validated_token):
+        member_id = validated_token.get("user_id")
+
+        if not member_id:
+            raise AuthenticationFailed("Token does not contain member_id")
+
+        try:
+            return User.objects.get(member_id=member_id)
+        except User.DoesNotExist:
+            raise AuthenticationFailed("Member not found")

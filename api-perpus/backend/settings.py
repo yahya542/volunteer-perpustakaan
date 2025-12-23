@@ -60,6 +60,7 @@ REST_FRAMEWORK = {
 
 # JWT Configuration
 from datetime import timedelta
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -75,11 +76,14 @@ SIMPLE_JWT = {
 
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'id',  # Use 'id' as it's the primary key field in Django's default User model
+    'USER_ID_FIELD': 'user_id',
     'USER_ID_CLAIM': 'user_id',
 
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
+    
+    # Custom user authentication
+    'JTI_CLAIM': 'jti',
 }
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Perpustakaan API',

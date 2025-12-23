@@ -206,6 +206,28 @@ button:active {
     font-size: 14px;
 }
 
+.current-loan-item .loan-info p {
+    margin: 6px 0;
+    line-height: 1.4;
+}
+
+.current-loan-item .loan-info {
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.due-soon {
+    color: #f39c12 !important;
+    font-weight: bold;
+}
+
+.overdue {
+    color: #e74c3c !important;
+    font-weight: bold;
+}
+
 .loan-history-item strong, .current-loan-item strong {
     color: #34495e;
 }

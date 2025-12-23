@@ -233,7 +233,7 @@
             console.log('Fetching loan history with JWT token');
             
             // Fetch loan history data - using the correct endpoint without member ID
-            const url = `${baseUrl}/api/loan-history/member/${memberId}`;
+            const url = `${baseUrl}/api/loan-history/member/${memberId}/`;
             console.log('Fetching loan history from:', url);
             
             fetch(url, {
@@ -531,9 +531,10 @@
                 html += `
                     <div class="loan-history-item">
                         <p><strong>Kode Item:</strong> ${loan.item_code || 'N/A'}</p>
-                        <p><strong>Tanggal Pinjam:</strong> ${loan.loan_date || 'N/A'}</p>
-                        <p><strong>Tanggal Jatuh Tempo:</strong> ${loan.due_date || 'N/A'}</p>
-                        <p><strong>Tanggal Kembali:</strong> ${loan.return_date || 'Belum dikembalikan'}</p>
+                        <p><strong>Judul:</strong> ${loan.title || 'N/A'}</p>
+                        <p><strong>Tanggal Pinjam:</strong> ${formatDate(loan.loan_date) || 'N/A'}</p>
+                        <p><strong>Tanggal Jatuh Tempo:</strong> ${formatDate(loan.due_date) || 'N/A'}</p>
+                        <p><strong>Tanggal Kembali:</strong> ${formatDate(loan.return_date) || 'Belum dikembalikan'}</p>
                         <p><strong>Status:</strong> ${loan.return_date ? 'Dikembalikan' : 'Masih dipinjam'}</p>
                     </div>
                 `;
@@ -563,11 +564,24 @@
             `;
             
             loans.forEach(loan => {
+                // Calculate days until due
+                let daysUntilDue = 'N/A';
+                if (loan.due_date) {
+                    const dueDate = new Date(loan.due_date);
+                    const today = new Date();
+                    const timeDiff = dueDate.getTime() - today.getTime();
+                    daysUntilDue = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                }
+                
                 html += `
                     <div class="current-loan-item">
-                        <p><strong>Kode Item:</strong> ${loan.item_code || 'N/A'}</p>
-                        <p><strong>Tanggal Pinjam:</strong> ${loan.loan_date || 'N/A'}</p>
-                        <p><strong>Tanggal Jatuh Tempo:</strong> ${loan.due_date || 'N/A'}</p>
+                        <div class="loan-info">
+                            <p><strong>Kode Item:</strong> ${loan.item_code || 'N/A'}</p>
+                            <p><strong>Judul:</strong> ${loan.title || 'N/A'}</p>
+                            <p><strong>Tanggal Pinjam:</strong> ${formatDate(loan.loan_date) || 'N/A'}</p>
+                            <p><strong>Tanggal Jatuh Tempo:</strong> ${formatDate(loan.due_date) || 'N/A'}</p>
+                            <p class="${daysUntilDue < 0 ? 'overdue' : daysUntilDue <= 3 ? 'due-soon' : ''}"><strong>Sisa Waktu:</strong> ${daysUntilDue > 0 ? daysUntilDue + ' hari lagi' : daysUntilDue === 0 ? 'Hari ini' : Math.abs(daysUntilDue) + ' hari terlambat'}</p>
+                        </div>
                     </div>
                 `;
             });
@@ -578,6 +592,17 @@
             `;
             
             container.innerHTML = html;
+        }
+        
+        // Helper function to format dates
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString; // return original if invalid date
+            
+            // Format as YYYY-MM-DD to DD/MM/YYYY
+            return dateString.split('-').reverse().join('/');
         }
 
         // Function to display all books

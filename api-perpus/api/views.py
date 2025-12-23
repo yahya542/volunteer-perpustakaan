@@ -11,7 +11,7 @@ from .serializers import (
     DetailedBiblioSerializer, LoanSerializer
 )
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from .authentication import MemberJWTAuthentication
 
 
 class BiblioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -49,15 +49,24 @@ class BiblioViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 
-class LoanHistoryViewSet(APIView):
-    authentication_classes = [JWTAuthentication]
+class LoanHistoryView(APIView):
+    authentication_classes = [MemberJWTAuthentication]
     permission_classes = [IsAuthenticated]
-
+    
+    @extend_schema(
+        summary="Get loan history for current user",
+        description="Retrieve all loan history records for the currently authenticated user based on their JWT token.",
+        responses={
+            200: LoanHistorySerializer(many=True),
+            401: {"type": "object", "properties": {"detail": {"type": "string"}}}
+        }
+    )
     def get(self, request):
-        member_id = request.user.user_id  # atau relasi ke member
-
-        loans = Loan.objects.filter(member_id=member_id)
-        serializer = LoanSerializer(loans, many=True)
+        member_id = request.user.user_id  # Get member_id from JWT token
+        
+        # Get loan history for the current user
+        history = LoanHistory.objects.filter(member_id=member_id)
+        serializer = LoanHistorySerializer(history, many=True)
         return Response(serializer.data)
 
 
@@ -71,7 +80,7 @@ class CurrentLoansViewSet(viewsets.ReadOnlyModelViewSet):
     """
     serializer_class = LoanSerializer
     permission_classes = [IsAuthenticated]  # Require authentication for current loans
-    authentication_classes = [JWTAuthentication]  # Explicitly require JWT authentication
+    authentication_classes = [MemberJWTAuthentication]  # Use custom JWT authentication
     
     def get_queryset(self):
         """
@@ -79,7 +88,9 @@ class CurrentLoansViewSet(viewsets.ReadOnlyModelViewSet):
         """
         # Get the member ID from the JWT token
         user = self.request.user
-        if hasattr(user, 'member_id'):
+        if hasattr(user, 'user_id'):
+            member_id = user.user_id
+        elif hasattr(user, 'member_id'):
             member_id = user.member_id
         else:
             # If we can't get member_id from user, return empty queryset
@@ -101,7 +112,7 @@ class MemberLoanHistoryView(APIView):
     API endpoint for getting loan history for a specific member.
     """
     permission_classes = [IsAuthenticated]  # Require authentication for member loan history
-    authentication_classes = [JWTAuthentication]  # Explicitly require JWT authentication
+    authentication_classes = [MemberJWTAuthentication]  # Use custom JWT authentication
     
     @extend_schema(
         summary="Get loan history for a member (alternative endpoint)",
@@ -113,7 +124,9 @@ class MemberLoanHistoryView(APIView):
     )
     def get(self, request, member_id):
         """Retrieve loan history for a specific member"""
+        # Query loan history for the specified member_id
         history = LoanHistory.objects.filter(member_id=member_id)
+        
         serializer = LoanHistorySerializer(history, many=True)
         return Response(serializer.data)
 
@@ -123,7 +136,7 @@ class MemberCurrentLoansView(APIView):
     API endpoint for getting current loans for a specific member.
     """
     permission_classes = [IsAuthenticated]  # Require authentication for member current loans
-    authentication_classes = [JWTAuthentication]  # Explicitly require JWT authentication
+    authentication_classes = [MemberJWTAuthentication]  # Use custom JWT authentication
     
     @extend_schema(
         summary="Get current loans for a member",
