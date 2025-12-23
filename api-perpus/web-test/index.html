@@ -24,6 +24,12 @@
         
         <div id="status-message" style="margin: 10px 0; padding: 10px; border-radius: 5px; display: none;"></div>
         <div id="data-display" style="margin-top: 20px;"></div>
+        <!-- Add dedicated containers for each section -->
+        <div id="account-result" style="margin-top: 20px; display: none;"></div>
+        <div id="loan-history" style="margin-top: 20px; display: none;"></div>
+        <div id="current-loans-result" style="margin-top: 20px; display: none;"></div>
+        <div id="books-result" style="margin-top: 20px; display: none;"></div>
+        <div id="book-detail" style="margin-top: 20px; display: none;"></div>
     </div>
 
     <script>
@@ -75,6 +81,7 @@
             
             // Show user info and logout button
             const username = localStorage.getItem('username');
+            
             document.getElementById('user-info').textContent = `Logged in as: ${username}`;
             document.getElementById('logout-btn').style.display = 'inline-block';
         });
@@ -114,7 +121,7 @@
             
             // Clear previous results when switching sections
             document.getElementById('account-result').innerHTML = '';
-            document.getElementById('loan-history-result').innerHTML = '';
+            document.getElementById('loan-history').innerHTML = '';
             document.getElementById('current-loans-result').innerHTML = '';
             document.getElementById('books-result').innerHTML = '';
             document.getElementById('book-detail').innerHTML = '';
@@ -122,10 +129,7 @@
         
         // Event listeners for navigation buttons
         document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('account-btn').addEventListener('click', function() {
-                showSection('account-section');
-                loadAccountInfo();
-            });
+            
             document.getElementById('loan-history-btn').addEventListener('click', function() {
                 showSection('loan-history-section');
                 loadLoanHistory();
@@ -210,20 +214,26 @@
             const token = localStorage.getItem('access_token');
             console.log('Token:', token);
             
-            // Get member ID from JWT token instead of localStorage
-            const memberId = getMemberIdFromToken();
-            console.log('Member ID from JWT:', memberId);
-            
-            if (!memberId) {
-                console.log('No member_id found in JWT token');
-                document.getElementById('loan-history-result').innerHTML = '<p>Error: Unable to retrieve loan history. Please try logging in again.</p>';
+            if (!token) {
+                console.log('No token found');
+                document.getElementById('loan-history').innerHTML = '<p>Error: Authentication required. Please log in again.</p>';
                 return;
             }
+            const memberId = getMemberIdFromToken();
+            console.log('Member ID from JWT:', memberId);
+
+            if (!memberId) {
+                document.getElementById('loan-history').innerHTML =
+                    '<p>Error: Member ID tidak valid. Silakan login ulang.</p>';
+                return;
+            }
+
+
             
-            console.log('Using member ID from JWT for loan history request');
+            console.log('Fetching loan history with JWT token');
             
-            // Fetch loan history data - using the new direct endpoint
-            const url = `${baseUrl}/api/loan-history/member/${memberId}/`;
+            // Fetch loan history data - using the correct endpoint without member ID
+            const url = `${baseUrl}/api/loan-history/member/${memberId}`;
             console.log('Fetching loan history from:', url);
             
             fetch(url, {
@@ -235,6 +245,9 @@
             .then(response => {
                 console.log('Loan history API Response status:', response.status);
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Unauthorized: Please log in again');
+                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
@@ -254,7 +267,6 @@
                                         <th>Loan Date</th>
                                         <th>Due Date</th>
                                         <th>Return Date</th>
-                                        <th>Fines</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -263,12 +275,11 @@
                     data.forEach(item => {
                         tableHtml += `
                             <tr>
-                                <td>${item.item.item_code || 'N/A'}</td>
-                                <td>${item.biblio.title || 'N/A'}</td>
+                                <td>${item.item_code || 'N/A'}</td>
+                                <td>${item.title || 'N/A'}</td>
                                 <td>${item.loan_date || 'N/A'}</td>
                                 <td>${item.due_date || 'N/A'}</td>
                                 <td>${item.return_date || 'Not returned'}</td>
-                                <td>${item.fines || '0'}</td>
                             </tr>
                         `;
                     });
@@ -279,14 +290,36 @@
                         </div>
                     `;
                     
-                    document.getElementById('loan-history-result').innerHTML = tableHtml;
+                    // Make sure the element exists before trying to set innerHTML
+                    const container = document.getElementById('loan-history');
+                    if (container) {
+                        container.innerHTML = tableHtml;
+                        container.style.display = 'block';
+                        document.getElementById('data-display').innerHTML = ''; // Clear main display
+                    } else {
+                        console.warn('loan-history element not found');
+                        // Fallback to main display
+                        document.getElementById('data-display').innerHTML = tableHtml;
+                    }
                 } else {
-                    document.getElementById('loan-history-result').innerHTML = '<p>No loan history found.</p>';
+                    const container = document.getElementById('loan-history');
+                    if (container) {
+                        container.innerHTML = '<p>No loan history found.</p>';
+                        container.style.display = 'block';
+                    } else {
+                        document.getElementById('data-display').innerHTML = '<p>No loan history found.</p>';
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error loading loan history:', error);
-                document.getElementById('loan-history-result').innerHTML = `<p>Error loading loan history: ${error.message}</p>`;
+                const container = document.getElementById('loan-history');
+                if (container) {
+                    container.innerHTML = `<p>Error loading loan history: ${error.message}</p>`;
+                    container.style.display = 'block';
+                } else {
+                    document.getElementById('data-display').innerHTML = `<p>Error loading loan history: ${error.message}</p>`;
+                }
             });
         }
 
@@ -297,20 +330,16 @@
             const token = localStorage.getItem('access_token');
             console.log('Token:', token);
             
-            // Get member ID from JWT token instead of localStorage
-            const memberId = getMemberIdFromToken();
-            console.log('Member ID from JWT:', memberId);
-            
-            if (!memberId) {
-                console.log('No member_id found in JWT token');
-                document.getElementById('current-loans-result').innerHTML = '<p>Error: Unable to retrieve current loans. Please try logging in again.</p>';
+            if (!token) {
+                console.log('No token found');
+                document.getElementById('current-loans-result').innerHTML = '<p>Error: Authentication required. Please log in again.</p>';
                 return;
             }
             
-            console.log('Using member ID from JWT for current loans request');
+            console.log('Fetching current loans with JWT token');
             
-            // Fetch current loans data - using the new direct endpoint
-            const url = `${baseUrl}/api/loan-history/member/${memberId}/`; // We'll filter for non-returned items
+            // Fetch current loans data - using the correct endpoint without member ID
+            const url = `${baseUrl}/api/loan/`;
             console.log('Fetching current loans from:', url);
             
             fetch(url, {
@@ -322,14 +351,17 @@
             .then(response => {
                 console.log('Current loans API Response status:', response.status);
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Unauthorized: Please log in again');
+                    }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
                 console.log('Current loans data received:', data);
-                // Filter for loans that haven't been returned yet (no return_date)
-                const currentLoans = data.filter(loan => !loan.return_date);
+                // Filter for loans that haven't been returned yet (is_return = 0)
+                const currentLoans = data.filter(loan => loan.is_return === 0);
                 
                 if (currentLoans && currentLoans.length > 0) {
                     // Create HTML table for current loans
@@ -358,8 +390,8 @@
                         
                         tableHtml += `
                             <tr>
-                                <td>${item.item.item_code || 'N/A'}</td>
-                                <td>${item.biblio.title || 'N/A'}</td>
+                                <td>${item.item_code || 'N/A'}</td>
+                                <td>${item.title || 'N/A'}</td>
                                 <td>${item.loan_date || 'N/A'}</td>
                                 <td>${item.due_date || 'N/A'}</td>
                                 <td>${daysUntilDue} days</td>
@@ -374,13 +406,17 @@
                     `;
                     
                     document.getElementById('current-loans-result').innerHTML = tableHtml;
+                    document.getElementById('current-loans-result').style.display = 'block';
+                    document.getElementById('data-display').innerHTML = ''; // Clear main display
                 } else {
                     document.getElementById('current-loans-result').innerHTML = '<p>No current loans found.</p>';
+                    document.getElementById('current-loans-result').style.display = 'block';
                 }
             })
             .catch(error => {
                 console.error('Error loading current loans:', error);
                 document.getElementById('current-loans-result').innerHTML = `<p>Error loading current loans: ${error.message}</p>`;
+                document.getElementById('current-loans-result').style.display = 'block';
             });
         }
 

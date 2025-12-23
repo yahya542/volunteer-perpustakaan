@@ -1,7 +1,5 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from rest_framework.decorators import action
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -12,6 +10,8 @@ from .serializers import (
     BiblioSerializer, LoanHistorySerializer, PublisherSerializer, AuthorSerializer,
     DetailedBiblioSerializer, LoanSerializer
 )
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class BiblioViewSet(viewsets.ReadOnlyModelViewSet):
@@ -48,18 +48,17 @@ class BiblioViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class LoanHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ViewSet for Loan History operations.
-    
-    Provides read-only functionality for loan history records including:
-    - Listing all loan history
-    - Retrieving individual loan history details
-    - Getting loan history for a specific member
-    """
-    queryset = LoanHistory.objects.all()
-    serializer_class = LoanHistorySerializer
-    permission_classes = [IsAuthenticated]  # Require authentication for loan history
+
+class LoanHistoryViewSet(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        member_id = request.user.user_id  # atau relasi ke member
+
+        loans = Loan.objects.filter(member_id=member_id)
+        serializer = LoanSerializer(loans, many=True)
+        return Response(serializer.data)
 
 
 class CurrentLoansViewSet(viewsets.ReadOnlyModelViewSet):
