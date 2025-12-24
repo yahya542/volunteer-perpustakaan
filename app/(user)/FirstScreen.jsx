@@ -40,7 +40,7 @@ const FirstScreen = () => {
           },
         ]}
       >
-      <View style={{ display: 'flex', flexDirection: 'row', width: 300, marginBottom: 20, justifyContent: 'center', }}>
+      <View style={{ display: 'flex', flexDirection: 'row', width: 300, marginBottom: 20, justifyContent: 'center', top: -80, gap: 20 }}>
         <Image source={require("../../assets/images/uim.png")}/>
         <Image source={require("../../assets/images/pemda.png")}/>
       </View>
@@ -51,6 +51,9 @@ const FirstScreen = () => {
         />
         <Text style={styles.label}>PERPUSDA M.TAMBRANI</Text>
         <Text style={styles.label}>PAMEKASAN</Text>
+        <View style={{ position: 'absolute', bottom: -70,  }}>
+          <Text style={{color: "#0F612F",}}>Suport by: Fakultas Teknik Univertas Islamm Madura</Text>
+        </View>
       </Animated.View>
     </View>
   );

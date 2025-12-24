@@ -1,8 +1,8 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const TabBar = ({ state, navigation }) => {
-  const activeColor = '#5a3fd1';
-  const inactiveColor = '#6d6a75';
+  const activeColor = '#0F612F';
+  const inactiveColor = '#5a5860ff';
 
   const icons = {
     HomePage: require('../../assets/icons/Home.png'),
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     flexDirection: 'row',
-    backgroundColor: '#ece8ff',
+    backgroundColor: '#70A284',
     paddingVertical: 12,
     borderRadius: 28,
     borderCurve: 'continuous',

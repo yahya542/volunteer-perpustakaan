@@ -107,7 +107,7 @@ const Login = () => {
 
       <View style={{ flex: 1, gap: 10 }}>
         <View style={{ marginTop: 90 }}>
-          <Text style={{ fontSize: 15, color: "#664BD1", right: -20 }}>
+          <Text style={{ fontSize: 15, color: "#0F612F", right: -20 }}>
             NIK
           </Text>
           <TextInput
@@ -119,7 +119,7 @@ const Login = () => {
         </View>
 
         <View>
-          <Text style={{ fontSize: 15, color: "#664BD1", right: -20 }}>
+          <Text style={{ fontSize: 15, color: "#0F612F", right: -20 }}>
             Password
           </Text>
           <View style={{ position: "relative" }}>
@@ -137,7 +137,7 @@ const Login = () => {
               <Ionicons
                 name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={24}
-                color="#664BD1"
+                color="#0F612F"
               />
             </TouchableOpacity>
           </View>
@@ -146,7 +146,7 @@ const Login = () => {
           <TouchableOpacity
             onPress={() => router.push("/user/LupaSandiScreen")}
           >
-            <Text style={{ color: "#664BD1" }}>Lupa Password?</Text>
+            <Text style={{ color: "#0F612F" }}>Lupa Password?</Text>
           </TouchableOpacity>
         </View>
 
@@ -174,7 +174,7 @@ const style = StyleSheet.create({
     backgroundColor: "#fffffff0",
   },
   titleContainer: {
-    backgroundColor: "#664BD1",
+    backgroundColor: "#0F612F",
     height: 328,
     width: "100%",
     borderBottomRightRadius: 100,
@@ -195,11 +195,11 @@ const style = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 15,
     fontSize: 16,
-    borderColor: "#664BD1",
-    placeholderTextColor: "#664BD1",
+    borderColor: "#0F612F",
+    placeholderTextColor: "#0F612F",
   },
   button: {
-    backgroundColor: "#664BD1",
+    backgroundColor: "#0F612F",
     paddingVertical: 14,
     borderRadius: 30,
     alignItems: "center",

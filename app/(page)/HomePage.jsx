@@ -57,7 +57,7 @@ const style = StyleSheet.create({
     marginTop: 50,
   },
   titleContainer: {
-    backgroundColor: "#5D7BF4",
+    backgroundColor: "#0F612F",
     width: "100%",
     borderBottomRightRadius: 100,
     justifyContent: "flex-end",
