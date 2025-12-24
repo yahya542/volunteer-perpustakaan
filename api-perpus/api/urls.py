@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    BiblioViewSet, PublisherViewSet, AuthorViewSet, MemberLoanHistoryView, CurrentLoansViewSet, LoanHistoryView
+    BiblioViewSet, PublisherViewSet, AuthorViewSet, MemberLoanHistoryView, CurrentLoansViewSet, LoanHistoryView, LoanExtensionRequestView
 )
 
 router = DefaultRouter()
@@ -18,5 +18,7 @@ urlpatterns = [
     path('loan-history/member/<str:member_id>/', MemberLoanHistoryView.as_view(), name='member-loan-history'),
     # Direct endpoint for current user's loan history
     path('loan-history/', LoanHistoryView.as_view(), name='loan-history'),
+    # Direct endpoint for loan extension request
+    path('loan/extension-request/', LoanExtensionRequestView.as_view(), name='loan-extension-request'),
 ]
 

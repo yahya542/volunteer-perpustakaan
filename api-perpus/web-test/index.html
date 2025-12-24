@@ -19,6 +19,7 @@
             <button class="menu-button" onclick="loadAccountInfo()">Akun Saya</button>
             <button class="menu-button" onclick="loadLoanHistory()">Sejarah Peminjaman</button>
             <button class="menu-button" onclick="loadCurrentLoans()">Peminjaman Saat Ini</button>
+            <button class="menu-button" onclick="loadLoanExtensionPage()">Ajukan Perpanjangan</button>
             <button class="menu-button" onclick="loadAllBooks()">Lihat Semua Buku</button>
         </div>
         
@@ -125,6 +126,11 @@
             document.getElementById('current-loans-result').innerHTML = '';
             document.getElementById('books-result').innerHTML = '';
             document.getElementById('book-detail').innerHTML = '';
+        }
+        
+        // Function to navigate to loan extension page
+        function loadLoanExtensionPage() {
+            window.location.href = 'loan-extension.html';
         }
         
         // Event listeners for navigation buttons

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Extension Request</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .back-button {
+            background-color: #6c757d;
+            margin-top: 10px;
+        }
+        
+        .back-button:hover {
+            background-color: #545b62;
+        }
+        
+        .status-message {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Loan Extension Request</h1>
+        <form id="extension-form">
+            <div class="form-group">
+                <label for="whatsapp-number">WhatsApp Number (where we can contact you):</label>
+                <input type="text" id="whatsapp-number" name="whatsapp_number" placeholder="e.g., 628123456789" required>
+            </div>
+            <button type="submit" id="submit-btn">Submit Extension Request</button>
+        </form>
+        
+        <button class="back-button" onclick="goBack()">Back to Main Menu</button>
+        <div id="status-message" class="status-message"></div>
+    </div>
+
+    <script>
+        const baseUrl = 'http://localhost:8000';
+
+        function checkAuth() {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                alert('Please log in first');
+                window.location.href = 'login.html';
+                return false;
+            }
+            return true;
+        }
+
+        function showStatus(message, isError = false) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status-message ' + (isError ? 'error' : 'success');
+            statusDiv.style.display = 'block';
+            setTimeout(() => { statusDiv.style.display = 'none'; }, 5000);
+        }
+
+        document.getElementById('extension-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!checkAuth()) return;
+
+            const whatsappNumber = document.getElementById('whatsapp-number').value.trim();
+            if (!whatsappNumber) {
+                showStatus('Please fill in WhatsApp number', true);
+                return;
+            }
+            if (!/^[1-9][0-9]{6,14}$/.test(whatsappNumber)) {
+                showStatus('Invalid WhatsApp number format. Use format like 628123456789', true);
+                return;
+            }
+
+            const token = localStorage.getItem('access_token');
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch(`${baseUrl}/api/loan/extension-request/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ whatsapp_number: whatsappNumber })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showStatus(data.message || 'Loan extension request submitted successfully!');
+                    document.getElementById('extension-form').reset();
+                } else {
+                    showStatus(data.error || 'Failed to submit extension request', true);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Network error occurred. Please try again.', true);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Extension Request';
+            }
+        });
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth()) return;
+        });
+    </script>
+</body>
+</html>

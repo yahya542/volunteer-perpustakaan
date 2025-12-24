@@ -204,18 +204,18 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Email Configuration Options:
 
 # OPTION 1: Console Backend (For Development/Testing - CURRENTLY ACTIVE)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # OPTION 2: SMTP Gmail (For Production - Uncomment to send real emails)
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_USE_SSL = False
-# EMAIL_HOST_USER = 'sajakcodingan@gmail.com'
-# EMAIL_HOST_PASSWORD = 'hmkk cwdy wzgj seyv'
-# DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-# EMAIL_TIMEOUT = 30
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+EMAIL_HOST_USER = 'sajakcodingan@gmail.com'
+EMAIL_HOST_PASSWORD = 'hmkk cwdy wzgj seyv'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_TIMEOUT = 30
 
 # STATUS: Currently using Console Backend - emails appear in Django terminal
 # To send real emails: Comment out OPTION 1 and uncomment OPTION 2
