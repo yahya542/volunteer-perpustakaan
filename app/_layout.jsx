@@ -10,9 +10,9 @@ export default function RootLayout() {
     if (isLoading) return;
 
     if (!isSignedIn) {
-      // router.replace("/(user)/FirstScreen");
+      router.replace("/(user)/FirstScreen");
       // router.replace("/(user)/LupaSandiScreen");
-      router.replace("/(user)/Otp");
+      // router.replace("/(user)/Otp");
       // router.replace("/(page)/AkunSaya");
       // router.replace("/(page)/HomePage");
     } else { 

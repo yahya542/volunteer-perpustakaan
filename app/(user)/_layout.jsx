@@ -5,13 +5,7 @@ export default function AuthLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="FirstScreen" />
       <Stack.Screen name="Login" />
-      <Stack.Screen name="DataPertama" />
-      <Stack.Screen name="DataKedua" />
-      <Stack.Screen name="Register" />
-      <Stack.Screen name="Otp" />
       <Stack.Screen name="LupaSandiScreen" />
     </Stack>
   );
 }
-
-

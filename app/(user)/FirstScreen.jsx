@@ -40,12 +40,16 @@ const FirstScreen = () => {
           },
         ]}
       >
+      <View style={{ display: 'flex', flexDirection: 'row', width: 300, marginBottom: 20, justifyContent: 'center', }}>
+        <Image source={require("../../assets/images/uim.png")}/>
+        <Image source={require("../../assets/images/pemda.png")}/>
+      </View>
         <Image
           source={require("../../assets/images/monumen.png")}
           style={styles.image}
           resizeMode="contain"
         />
-        <Text style={styles.label}>PERPUSTAKAAN</Text>
+        <Text style={styles.label}>PERPUSDA M.TAMBRANI</Text>
         <Text style={styles.label}>PAMEKASAN</Text>
       </Animated.View>
     </View>
@@ -57,7 +61,7 @@ export default FirstScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#ffffffff",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -73,7 +77,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "800",
     letterSpacing: 1,
-    color: "#6A5AE0",
+    color: "#0F612F",
     textShadowColor: "rgba(0,0,0,0.25)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
