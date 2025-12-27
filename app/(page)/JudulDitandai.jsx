@@ -25,6 +25,7 @@ const PinjamanTerkini = () => {
               color: "#ffffff",
               justifyContent: "center",
               alignItems: "flex-start",
+              opacity: 0.7,
             }}
           />
           <Text style={style.title}>Buku Ditandai</Text>
@@ -44,7 +45,7 @@ const style = StyleSheet.create({
     backgroundColor: "#fffffff0",
   },
   titleContainer: {
-    backgroundColor: "#664BD1",
+    backgroundColor: "#0F612F",
     width: "100%",
     borderBottomRightRadius: 100,
     justifyContent: "flex-end",

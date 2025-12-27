@@ -30,7 +30,7 @@ const style = StyleSheet.create({
     backgroundColor: "#f0f0f0f0",
   },
   titleContainer: {
-    backgroundColor: "#664BD1",
+    backgroundColor: "#0F612F",
     width: "100%",
     borderBottomRightRadius: 100,
     justifyContent: "flex-end",
@@ -57,5 +57,6 @@ const style = StyleSheet.create({
     color: "#ffffff",
     justifyContent: "center",
     alignItems: "flex-start",
+    opacity: 0.7,
   },
 });

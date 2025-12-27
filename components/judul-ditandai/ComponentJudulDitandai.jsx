@@ -92,7 +92,7 @@ const handleDeleteSelected = async () => {
             </Text>
           </View>
           <TouchableOpacity onPress={() => setIsDeleteMode(!isDeleteMode)}>
-            <Image source={Delete} style={{ marginLeft: 10 }} />
+            <Image source={Delete} style={{ marginLeft: 10, color: "#0F612F" }} />
           </TouchableOpacity>
         </View>
       </View>
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   countBadge: {
-    backgroundColor: "#664BD1",
+    backgroundColor: "#0F612F",
     height: 25,
     width: 208,
     alignItems: "center",

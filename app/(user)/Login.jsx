@@ -221,5 +221,6 @@ const style = StyleSheet.create({
     color: "#ffffff",
     justifyContent: "center",
     alignItems: "flex-start",
+    opacity: 0.7,
   },
 });
